@@ -37,13 +37,13 @@ function start_scheduled() {
 		if [ -f ~/.last-updated ]; then
 			if test `find ~/.last-updated -mmin +10080`; then
 				send_notify
-				sleep 10
+				sleep 20
 				notify_reminder
 			fi
 		else
 			update_notify_counter
 			send_notify
-			sleep 10
+			sleep 20
 			notify_reminder
 		fi
 	fi
