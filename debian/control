@@ -12,7 +12,8 @@ Homepage: http://www.parrotsec.org/
 Package: parrot-updater
 Architecture: all
 Priority: optional
-Depends: bash, zenity
+Depends: bash, zenity, libnotify-bin
+Provides: dist-upgrade
 Description: Parrot Updater
  Parrot Updater is a set of graphical tools
  to handle system updates and to show

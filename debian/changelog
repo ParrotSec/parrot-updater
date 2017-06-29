@@ -1,3 +1,10 @@
+parrot-updater (0.3) testing; urgency=medium
+
+  * Add dist-upgrade command
+  * Show the upgrade progress in a terminal window
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 29 Jun 2017 17:45:04 +0200
+
 parrot-updater (0.2) testing; urgency=medium
 
   * Fix launcher command

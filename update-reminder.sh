@@ -17,7 +17,7 @@ function update_notify_counter() {
 
 
 function send_notify() {
-	notify-send -t 500000 -a "Parrot Updater" -i /usr/share/icons/parrot-logo-100.png "Parrot Updater" "<b>Update</b> your system to apply the latest security updates and import the latest features"
+	notify-send -t 5000 -a "Parrot Updater" -i /usr/share/icons/parrot-logo-100.png "Parrot Updater" "<b>Update</b> your system to apply the latest security updates and import the latest features"
 }
 
 
@@ -25,7 +25,7 @@ function notify_reminder() {
 	zenity --question --text="Parrot was not updated since a while, do you want to check for updates?" && \
 	gksu apt update | zenity --progress --pulsate --auto-close --auto-kill --text="Checking for updates" && \
 	zenity --question --text="$(echo $(apt list --upgradable | wc -l)-1 | bc) packages can be upgraded, do you want to upgrade them?" && \
-	gksu -- apt -y dist-upgrade | zenity --progress --pulsate --auto-close --auto-kill --text="Installing updates" && \
+	gksu -- x-terminal-emulator -e dist-upgrade | zenity --progress --pulsate --auto-close --auto-kill --text="Installing updates" && \
 	zenity --info "Upgrade completed" && update_notify_counter
 }
 
@@ -37,7 +37,7 @@ function start_scheduled() {
 		if [ -f ~/.last-updated ]; then
 			if test `find ~/.last-updated -mmin +10080`; then
 				send_notify
-				sleep 20
+				sleep 50
 				notify_reminder
 			fi
 		else
