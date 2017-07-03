@@ -1,3 +1,9 @@
+parrot-updater (0.3.1) testing; urgency=medium
+
+  * Add bc dependency
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 03 Jul 2017 21:58:24 +0200
+
 parrot-updater (0.3) testing; urgency=medium
 
   * Add dist-upgrade command
