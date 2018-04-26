@@ -22,7 +22,7 @@ function send_notify() {
 
 
 function notify_reminder() {
-	zenity --question --text="Parrot was not updated since a while, do you want to check for updates?" && \
+	zenity --question --text="Do you want to check for updates?" && \
 	gksu apt update | zenity --progress --pulsate --auto-close --auto-kill --text="Checking for updates" && \
 	zenity --question --text="$(echo $(apt list --upgradable | wc -l)-1 | bc) packages can be upgraded, do you want to upgrade them?" && \
 	gksu -- x-terminal-emulator -e dist-upgrade | zenity --progress --pulsate --auto-close --auto-kill --text="Installing updates" && \
@@ -48,17 +48,6 @@ function start_scheduled() {
 		fi
 	fi
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 case "$1" in

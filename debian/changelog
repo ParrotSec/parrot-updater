@@ -1,3 +1,11 @@
+parrot-updater (0.4) testing; urgency=medium
+
+  * Add dpkg interruption recovery.
+  * Improve conflicts removal.
+  * Add new auto-upgrade aliases.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 26 Apr 2018 13:56:11 +0200
+
 parrot-updater (0.3.3) testing; urgency=medium
 
   * Add --fix-missing and --fix-broken
