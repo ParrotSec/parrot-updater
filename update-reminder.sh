@@ -31,7 +31,7 @@ function notify_reminder() {
 
 
 function start_scheduled() {
-	if [ -f /lib/live/mount/medium/live/filesystem.squashfs ]; then
+	if [ -d /lib/live/mount/rootfs/filesystem.squashfs ]; then
 		exit 0
 	else
 		if [ -f ~/.last-updated ]; then
@@ -66,7 +66,7 @@ Parrot Update Reminder (v 0.1)
 	$RED┌──[$GREEN$USER$YELLOW@$BLUE`hostname`$RED]─[$GREEN$PWD$RED]
 	$RED└──╼ \$$GREEN"" update-reminder $RED{$GREEN""scheduled$RED|$GREEN""start$RED""}
 
-	$RED scheduled$BLUE -$GREEN Check when the system was updated and start only if needed	
+	$RED scheduled$BLUE -$GREEN Check when the system was updated and start only if needed
 	$RED start$BLUE -$GREEN Start the notifier now
 $RESETCOLOR
 " >&2

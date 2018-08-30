@@ -1,3 +1,9 @@
+parrot-updater (0.4.2) testing; urgency=medium
+
+  * Update live-mode checker.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 30 Aug 2018 18:14:21 +0200
+
 parrot-updater (0.4.1) testing; urgency=medium
 
   * Fix typo.
