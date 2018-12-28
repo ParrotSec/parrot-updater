@@ -1,3 +1,9 @@
+parrot-updater (0.4.3.1) testing; urgency=medium
+
+  * Add apt-parrot 2.18+ as dependency.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Fri, 28 Dec 2018 16:24:23 +0100
+
 parrot-updater (0.4.3) testing; urgency=medium
 
   * Drop parrot-upgrade command (now included in apt-parrot).
