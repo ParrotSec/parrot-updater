@@ -13,7 +13,7 @@ Package: parrot-updater
 Architecture: all
 Priority: optional
 Depends: bash, zenity, libnotify-bin, bc, apt-parrot (>= 2.18)
-Provides: dist-upgrade
+Replaces: apt-parrot (<< 2.18)
 Description: Parrot Updater
  Parrot Updater is a set of graphical tools
  to handle system updates and to show
