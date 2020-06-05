@@ -1,3 +1,15 @@
+parrot-updater (0.6) rolling-testing; urgency=medium
+
+  * Fix gksu parameters.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Fri, 05 Jun 2020 16:26:48 +0200
+
+parrot-updater (0.5) rolling-testing; urgency=medium
+
+  * Make the upgrade process fit one single step.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@localhost.localdomain>  Sat, 04 Apr 2020 06:27:32 +0200
+
 parrot-updater (0.4.3.1) testing; urgency=medium
 
   * Add apt-parrot 2.18+ as dependency.

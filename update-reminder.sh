@@ -23,8 +23,6 @@ function send_notify() {
 
 function notify_reminder() {
 	zenity --question --text="Do you want to check for updates?" && \
-	gksu apt update | zenity --progress --pulsate --auto-close --auto-kill --text="Checking for updates" && \
-	zenity --question --text="$(echo $(apt list --upgradable | wc -l)-1 | bc) packages can be upgraded, do you want to upgrade them?" && \
 	gksu -- x-terminal-emulator -e parrot-upgrade | zenity --progress --pulsate --auto-close --auto-kill --text="Installing updates" && \
 	zenity --info "Upgrade completed" && update_notify_counter
 }
@@ -59,7 +57,7 @@ case "$1" in
 	;;
    *)
 echo -e "
-Parrot Update Reminder (v 0.1)
+Parrot Update Reminder (v 0.6)
 	Developed by Lorenzo \"Palinuro\" Faletra <palinuro@parrotsec.org>
 		and a huge amount of Caffeine + some GNU/GPL v3 stuff
 	Usage:
