@@ -1,3 +1,10 @@
+parrot-updater (0.7) rolling-testing; urgency=medium
+
+  * Use gksudo instead of gksu.
+  * Re-try the upgrade if it fails once.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sun, 07 Jun 2020 21:23:52 +0200
+
 parrot-updater (0.6) rolling-testing; urgency=medium
 
   * Fix gksu parameters.
