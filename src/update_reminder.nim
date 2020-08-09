@@ -132,7 +132,7 @@ proc checkUpdate(): int =
         echo "[i] Checking [" & mirror.url & "] [" & mirror.edition & "]"
         checked += 1
         # If system is using cdn, we try using mirror url
-        if mirror.url.startsWith("https://deb.parrot.sh") or mirror.url.startsWith("https://deb.parrotsec.org"):
+        if mirror.url.startsWith("https://deb.parrot.sh") or mirror.url.startsWith("https://deb.parrotsec.org") or mirror.url.startsWith("https://mirror.parrot.sh"):
           var
             localDate: string
             serverDate: string
