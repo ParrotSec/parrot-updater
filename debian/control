@@ -15,7 +15,7 @@ Architecture: all
 Priority: optional
 Depends: libc6
 Replaces: apt-parrot (<< 2.18)
-Description: Parrot Updater
+Description: A fast update checker for Parrot OS
  Parrot Updater is a set of graphical tools
  to handle system updates and to show
  periodical update reminders.

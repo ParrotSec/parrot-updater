@@ -22,7 +22,7 @@ parrot-updater (0.5) rolling-testing; urgency=medium
 
   * Make the upgrade process fit one single step.
 
- -- Lorenzo "Palinuro" Faletra <palinuro@localhost.localdomain>  Sat, 04 Apr 2020 06:27:32 +0200
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sat, 04 Apr 2020 06:27:32 +0200
 
 parrot-updater (0.4.3.1) testing; urgency=medium
 
