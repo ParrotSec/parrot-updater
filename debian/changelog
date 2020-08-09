@@ -1,3 +1,10 @@
+parrot-updater (0.8) rolling-testing; urgency=medium
+
+  * Use new updater using Nim lang
+  * Update new copyright format (deb standard)
+
+ -- Nong Hoang "DmKnght" Tu <dmknght@parrotsec.org>  Mon, 10 Aug 2020 01:00:46 +0700
+
 parrot-updater (0.7) rolling-testing; urgency=medium
 
   * Use gksudo instead of gksu.
