@@ -6,4 +6,4 @@ Comment=Check for update from repository by checking InRelease
 Exec=update-reminder --fast
 Icon=system-upgrade
 Categories=System;GTK;
-
+Categories=System;
