@@ -200,6 +200,15 @@ proc checkUpdate(): int =
     return numOutOfDated
 
 
+proc onUpdateCompleted(v: Terminal, signal: int) =
+  if signal == 0:
+    echo "[*] Update completed"
+    sendNotify("Parrot Updater", "Your system is upgraded", "security-high")
+  else:
+    sendNotify("Parrot Updater", "Error while running parrot-upgrade", "security-low")
+    echo "[x] Failed to update"
+
+
 proc startUpgrade() =
   #[
     Spawn a native GTK terminal and run nyx with it to show current tor status
@@ -214,7 +223,7 @@ proc startUpgrade() =
 
   upgradeDialog.setTitle("Parrot Upgrade")
   upgradeDialog.setPosition(WindowPosition.center)
-
+  doUpgrade.connect("child-exited", onUpdateCompleted)
   doUpgrade.spawnAsync(
     {noLastlog}, # pty flags
     nil, # working directory
