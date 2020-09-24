@@ -366,7 +366,7 @@ proc main() =
       let updateResult = checkUpdate()
       if updateResult != 0:
         startUpgrade()
-    elif paramStr(1) == "--fast":
+    elif paramStr(1) == "--fast" or paramStr(1) == "scheduled":
       # Skip ask user for check update.
       let updateResult = checkUpdate()
       if updateResult != 0:
