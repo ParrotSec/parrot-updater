@@ -204,6 +204,12 @@ proc onUpdateCompleted(v: Terminal, signal: int) =
   if signal == 0:
     echo "[*] Update completed"
     sendNotify("Parrot Updater", "Your system is upgraded", "security-high")
+  elif signal == 256:
+    sendNotify("Parrot Updater", "Authentication error: Wrong password", "security-low")
+    echo "[x] Authentication error: Wrong password"
+  elif signal == 9:
+    sendNotify("Parrot Updater", "Cancelled by user", "security-low")
+    echo "[x] Cancelled by user"
   else:
     sendNotify("Parrot Updater", "Error while running parrot-upgrade", "security-low")
     echo "[x] Failed to update"
@@ -349,12 +355,18 @@ proc main() =
   # Put it here to fix crash when calling pop up
   if paramCount() == 1:
     if paramStr(1) == "--check-only":
+      # Only compare index file and quit
       discard checkUpdate()
     elif paramStr(1) == "--force":
+      # Skip asking and start parrot-upgrade
+      startUpgrade()
+    elif paramStr(1) == "--auto":
+      # Skip asking user and do update based on result
       let updateResult = checkUpdate()
       if updateResult != 0:
         startUpgrade()
     elif paramStr(1) == "--fast":
+      # Skip ask user for check update.
       let updateResult = checkUpdate()
       if updateResult != 0:
         let upgrade = askUpgradePopup()
