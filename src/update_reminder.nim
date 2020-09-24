@@ -213,6 +213,7 @@ proc onUpdateCompleted(v: Terminal, signal: int) =
   else:
     sendNotify("Parrot Updater", "Error while running parrot-upgrade", "security-low")
     echo "[x] Failed to update"
+  mainQuit()
 
 
 proc startUpgrade() =
