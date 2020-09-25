@@ -366,7 +366,7 @@ proc main() =
       let updateResult = checkUpdate()
       if updateResult != 0:
         startUpgrade()
-    elif paramStr(1) == "--fast" or paramStr(1) == "scheduled":
+    elif paramStr(1) == "--fast":
       # Skip ask user for check update.
       let updateResult = checkUpdate()
       if updateResult != 0:
@@ -375,6 +375,9 @@ proc main() =
         upgrade.destroy()
         if userChoice:
           startUpgrade()
+    elif paramStr(1) == "scheduled":
+      # Ask user before start apt
+      startUpdate(mainBoard)
   else:
     startUpdate(mainBoard)
 
