@@ -2,6 +2,7 @@ import strutils
 import httpclient
 import os
 import gintro / [gtk, gobject, glib, notify, vte]
+import osproc
 
 type
   Mirror = object
@@ -95,6 +96,13 @@ proc onExit(w: Window) =
   mainQuit()
 
 
+proc getUpgradeablePackages(): int =
+  let
+    cmd = "apt list --upgradeable"
+    output = execProcess(cmd)
+  return count(output, "/")
+
+
 proc checkUpdate(): int =
   var
     numOutOfDated = 0
@@ -137,7 +145,6 @@ proc checkUpdate(): int =
             localDate: string
             serverDate: string
           # Check if system doesn't have mirror index, we use main url
-          # FIXME only use first result in file list. Need to do more complex check
           # What if multiple url, and duplicate?
           if len(mirrorIndexes) == 0:
             localDate = parseDateFromFile(cdnIndexes[0])
@@ -184,8 +191,14 @@ proc checkUpdate(): int =
       sendNotify("New update is available", "Run command \"sudo parrot-upgrade\" to upgrade your system", "security-medium")
     elif numOutOfDated == 0:
       if numErrors == 0:
-        echo "[*] Your system is up to date"
-        sendNotify("Parrot Updater", "Your system is up to date", "security-high")
+        let notInstalled = getUpgradeablePackages()
+        if notInstalled == 0:
+          echo "[*] Your system is up to date"
+          sendNotify("Parrot Updater", "Your system is up to date", "security-high")
+        else:
+          echo "[!] ", notInstalled, " package[s] are not upgraded"
+          sendNotify("Parrot Updater", intToStr(notInstalled) & " package[s] are not upgraded", "security-medium")
+          return notInstalled
       else:
         # If 1 or more mirror doens't have error, we still count (old unused mirror?)
         if checked < numErrors:
@@ -208,6 +221,7 @@ proc onUpdateCompleted(v: Terminal, signal: int) =
     sendNotify("Parrot Updater", "Authentication error: Wrong password", "security-low")
     echo "[x] Authentication error: Wrong password"
   elif signal == 9:
+    # FIX me: app shows 2 times
     sendNotify("Parrot Updater", "Cancelled by user", "security-low")
     echo "[x] Cancelled by user"
   else:
@@ -220,7 +234,6 @@ proc startUpgrade() =
   #[
     Spawn a native GTK terminal and run nyx with it to show current tor status
   ]#
-  # TODO try exit after completed
   let
     upgradeDialog = newWindow()
     boxUpgrade = newBox(Orientation.vertical, 3)
@@ -289,7 +302,7 @@ proc askUpgradePopup(): Dialog =
 
 proc onClickUpdate(b: Button, d: Dialog) =
   # d.destroy()
-  sendNotify("Parrot Update", "Start checking for update", "security-medium")
+  sendNotify("Parrot Update", "Start checking for update", "security-high")
   userChoice = true
 
 
@@ -358,9 +371,9 @@ proc main() =
     if paramStr(1) == "--check-only":
       # Only compare index file and quit
       discard checkUpdate()
-    elif paramStr(1) == "--force":
-      # Skip asking and start parrot-upgrade
-      startUpgrade()
+    # elif paramStr(1) == "--force":
+    #   # Skip asking and start parrot-upgrade
+    #   startUpgrade()
     elif paramStr(1) == "--auto":
       # Skip asking user and do update based on result
       let updateResult = checkUpdate()
