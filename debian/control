@@ -1,5 +1,5 @@
 Source: parrot-updater
-Section: parrot
+Section: admin
 Priority: optional
 Maintainer: Parrot Team <parrot-devel@lists.parrotsec.org>
 Uploaders: Lorenzo "Palinuro" Faletra <palinuro@frozenbox.org>,
