@@ -11,7 +11,7 @@ Build-Depends-Indep: pkg-config
 Homepage: http://www.parrotsec.org/
 
 Package: parrot-updater
-Architecture: all
+Architecture: any
 Priority: optional
 Depends: libc6
 Replaces: apt-parrot (<< 2.18)
