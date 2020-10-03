@@ -319,7 +319,7 @@ proc askUpdatePopup(): Dialog =
   let
     retDialog = newDialog()
     bDialog = getContentArea(retDialog)
-    labelAsk = newLabel("Do you want to update?")
+    labelAsk = newLabel("Do you want to check for new updates?")
     btnY = newButton("Yes")
     btnN = newButton("No")
   
