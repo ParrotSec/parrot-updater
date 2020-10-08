@@ -228,7 +228,8 @@ proc onUpdateCompleted(v: Terminal, signal: int) =
     sendNotify("Parrot Updater", "Error while running parrot-upgrade", "security-low")
     echo "[x] Failed to update"
   mainQuit()
-
+proc upgradeCallback(terminal: ptr Terminal00; pid: int32; error: ptr glib.Error; userData: pointer) {.cdecl.} =
+  discard
 
 proc startUpgrade() =
   #[
@@ -248,7 +249,6 @@ proc startUpgrade() =
     {noLastlog}, # pty flags
     nil, # working directory
     ["/usr/bin/sudo", "/usr/bin/parrot-upgrade"], # args
-    # ["/usr/bin/echo", "/usr/bin/parrot-upgrade"],
     [], # envv
     {doNotReapChild}, # spawn flag
     nil, # Child setup
@@ -256,7 +256,7 @@ proc startUpgrade() =
     nil, # chlid setup data destroy
     -1, # timeout
     nil, # cancellabel
-    nil, # callback
+    upgradeCallback, # callback
     nil, # pointer
   )
   upgradeDialog.add(boxUpgrade)
