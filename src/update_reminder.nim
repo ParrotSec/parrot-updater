@@ -228,8 +228,11 @@ proc onUpdateCompleted(v: Terminal, signal: int) =
     sendNotify("Parrot Updater", "Error while running parrot-upgrade", "security-low")
     echo "[x] Failed to update"
   mainQuit()
+
+
 proc upgradeCallback(terminal: ptr Terminal00; pid: int32; error: ptr glib.Error; userData: pointer) {.cdecl.} =
   discard
+
 
 proc startUpgrade() =
   #[
