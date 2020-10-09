@@ -253,7 +253,7 @@ proc startUpgrade() =
     nil, # working directory
     ["/usr/bin/sudo", "/usr/bin/parrot-upgrade"], # args
     [], # envv
-    {doNotReapChild}, # spawn flag
+    {}, # spawn flag
     nil, # Child setup
     nil, # child setup data
     nil, # chlid setup data destroy
