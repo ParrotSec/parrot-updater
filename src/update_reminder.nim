@@ -188,7 +188,7 @@ proc checkUpdate(): int =
     # Complete for loop. Get the result
     if numOutOfDated > 0:
       echo "[!] Your system need to update"
-      sendNotify("New update is available", "Run command \"sudo parrot-upgrade\" to upgrade your system", "security-medium")
+      # sendNotify("New update is available", "Run command \"sudo parrot-upgrade\" to upgrade your system", "security-medium")
     elif numOutOfDated == 0:
       if numErrors == 0:
         let notInstalled = getUpgradeablePackages()
