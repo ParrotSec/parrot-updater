@@ -1,3 +1,9 @@
+parrot-updater (0.10) rolling-testing; urgency=medium
+
+  * Fix missing local cache for new mirror syntax
+
+ -- Nong Hoang "DmKnght" Tu <dmknght@parrotsec.org>  Fri, 01 Jan 2021 00:12:24 +0700
+
 parrot-updater (0.9) rolling-testing; urgency=medium
 
   * Fix vte problem
