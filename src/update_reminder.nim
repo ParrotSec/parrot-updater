@@ -52,7 +52,7 @@ proc checkUpdate(): int =
   for kind, path in walkDir(localRepoindex):
     if kind == pcFile and path.endsWith("InRelease"):
       let mirrorIndex = path.split("/")[^1]
-      if mirrorIndex.startsWith("deb.parrot.sh") or mirrorIndex.startsWith("deb.parrotsec.org"):
+      if mirrorIndex.startsWith("deb.parrot.sh") or mirrorIndex.startsWith("deb.parrotsec.org") or mirrorIndex.startsWith("mirror.parrot.sh"):
         cdnIndexes.add(path)
       else:
         mirrorIndexes.add(path)
