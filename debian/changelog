@@ -1,3 +1,9 @@
+parrot-updater (0.10-parrot1) rolling-testing; urgency=medium
+
+  * Update debian standard to 4.5.0
+
+ -- Nong Hoang "DmKnght" Tu <dmknght@parrotsec.org>  Fri, 01 Jan 2021 00:18:07 +0700
+
 parrot-updater (0.10) rolling-testing; urgency=medium
 
   * Fix missing local cache for new mirror syntax
