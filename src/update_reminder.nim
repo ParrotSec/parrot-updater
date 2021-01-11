@@ -69,6 +69,7 @@ proc getUpgradeablePackages(): int =
 
 
 proc checkUpdate(): int =
+  # TODO handle parrot's update and 3rd parties update at 1
   var
     numOutOfDated = 0
     numErrors = 0
@@ -80,7 +81,7 @@ proc checkUpdate(): int =
   for kind, path in walkDir(localRepoindex):
     if kind == pcFile and path.endsWith("InRelease"):
       let mirrorIndex = path.split("/")[^1]
-      if mirrorIndex.startsWith("deb.parrot.sh") or mirrorIndex.startsWith("deb.parrotsec.org") or mirrorIndex.startsWith("mirror.parrot.sh"):
+      if mirrorIndex.startsWith("deb.parrot") or mirrorIndex.startsWith("mirror.parrot"):
         cdnIndexes.add(path)
       else:
         mirrorIndexes.add(path)
@@ -319,6 +320,7 @@ proc startUpdate(w: Window) =
 
 
 proc main() =
+  # TODO handle popup and cli ask here
   #[
     Create new window
   ]#
