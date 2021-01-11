@@ -5,6 +5,8 @@ import gintro / [gtk, gobject, glib, notify, vte]
 import osproc
 import modules / cores
 
+let isDesktop = if getEnv("XDG_CURRENT_DESKTOP") == "": false else: true
+
 
 proc updateServerChange*(url: string): string =
   #[
@@ -24,6 +26,32 @@ proc sendNotify(sumary, body, icon: string) =
   discard init("Parrot Updater")
   let ipNotify = newNotification(sumary, body, icon)
   discard ipNotify.show()
+
+
+proc handleNotify(title, msg: string, lvl = 0) =
+  #[
+    Display message on terminal or prompt notification
+    Level: what type do we use?
+      0: good. Notification: security high
+      1: not good. Notification: security medium
+      2: bad. Notification: security low
+  ]#
+  if not isDesktop:
+    # TODO color for terminal
+    let cli_msg = "[" & title & "] [" & msg & "]"
+    if lvl == 0:
+      echo "[*] " & cli_msg
+    elif lvl == 1:
+      echo "[!] " & cli_msg
+    else:
+      echo "[x] " & cli_msg
+  else:
+    if lvl == 0:
+      sendNotify(title, msg, "security-high")
+    elif lvl == 1:
+      sendNotify(title, msg, "security-medium")
+    else:
+      sendNotify(title, msg, "security-low")
 
 
 proc onExit(w: Window) =
@@ -59,9 +87,8 @@ proc checkUpdate(): int =
 
   # If there is no index
   if len(mirrorIndexes) == 0 and len(cdnIndexes) == 0:
-    # numErrors += 1
-    echo "[x] Local file is missing"
-    sendNotify("Your system hasn't been updated", "Run parrot-upgrade for latest patches", "security-low")
+    # FIXME the code takes other repository as address
+    handleNotify("Your system hasn't been updated", "Local index is missing. Please run parrot-upgrade", 1)
     return -1
   else:
     for line in lines(repoConfig):
@@ -74,7 +101,7 @@ proc checkUpdate(): int =
             url: info[1],
             edition: info[2]
           )
-        echo "[i] Checking [" & mirror.url & "] [" & mirror.edition & "]"
+        echo "  [i] Checking [" & mirror.url & "] [" & mirror.edition & "]"
         checked += 1
         # If system is using cdn, we try using mirror url
         if mirror.url.startsWith("https://deb.parrot.sh") or mirror.url.startsWith("https://deb.parrotsec.org") or mirror.url.startsWith("https://mirror.parrot.sh"):
@@ -91,19 +118,19 @@ proc checkUpdate(): int =
             localDate = parseDateFromFile(mirrorIndexes[0])
             # let newMirrorURL = fileNameToURL(mirrorIndexes[0])
             mirror.url = fileNameToURL(mirrorIndexes[0])
-            echo "[i] Switch to mirror " & mirror.url
+            echo "  [i] Switch to mirror " & mirror.url
             serverDate = parseDateFromText(updateServerChange(mirror.url))
           if localDate != serverDate:
-            echo "[!] New update is available on " & mirror.edition
-            echo "[+] Your last update: " & localDate
-            echo "[+] Repo last update: " & serverDate
-            sendNotify("New update is available on " & mirror.edition, "Server " & serverDate & "\nMachine " & localDate, "security-low")
+            echo "  [!] New update is available on " & mirror.edition
+            echo "  [+] Your last update: " & localDate
+            echo "  [+] Repo last update: " & serverDate
+            handleNotify("New update is available on " & mirror.edition, "Server " & serverDate & "\nMachine " & localDate, 2)
             numOutOfDated += 1
         # Else (mirror url directly), we check update directly
         else:
           if len(mirrorIndexes) == 0:
-            echo "[x] Missing index of " & mirror.url
-            sendNotify("Parrot update", "Index for current mirror is missing", "security-low")
+            echo "  [x] Missing index of " & mirror.url
+            handleNotify("Parrot update", "Index for current mirror is missing", 2)
             numErrors += 1
             # numOutOfDated = -1
           else:
@@ -114,56 +141,55 @@ proc checkUpdate(): int =
                 localDate = parseDateFromFile(fileFromURL)
                 serverDate = parseDateFromText(updateServerChange(urlToRepoURL(mirror.url, mirror.edition)))
               if localDate != serverDate:
-                echo "[!] New update is available on " & mirror.edition
-                echo "[+] Your last update: " & localDate
-                echo "[+] Repo last update: " & serverDate
-                sendNotify("New update is available on " & mirror.edition, "Server " & serverDate & "\nMachine " & localDate, "security-low")
+                echo "  [!] New update is available on " & mirror.edition
+                echo "  [+] Your last update: " & localDate
+                echo "  [+] Repo last update: " & serverDate
+                handleNotify("New update is available on " & mirror.edition, "Server " & serverDate & "\nMachine " & localDate, 2)
                 numOutOfDated += 1
             else:
-              echo "[x] Missing index of " & mirror.url
+              echo "  [x] Missing index of " & mirror.url
               numErrors += 1
     # Complete for loop. Get the result
     if numOutOfDated > 0:
-      echo "[!] Your system need to update"
-      # sendNotify("New update is available", "Run command \"sudo parrot-upgrade\" to upgrade your system", "security-medium")
+      echo "  [!] Your system need to update"
     elif numOutOfDated == 0:
       if numErrors == 0:
         let notInstalled = getUpgradeablePackages()
         if notInstalled == 0:
-          echo "[*] Your system is up to date"
-          sendNotify("Parrot Updater", "Your system is up to date", "security-high")
+          #echo "  [*] Your system is up to date"
+          handleNotify("Parrot Updater", "Your system is up to date", 0)
         else:
-          echo "[!] ", notInstalled, " package[s] are not upgraded"
-          sendNotify("Parrot Updater", intToStr(notInstalled) & " package[s] are not upgraded", "security-medium")
+          #echo "  [!] ", notInstalled, " package[s] are not upgraded"
+          handleNotify("Parrot Updater", intToStr(notInstalled) & " package[s] are not upgraded", 1)
           return notInstalled
       else:
         # If 1 or more mirror doens't have error, we still count (old unused mirror?)
         if checked < numErrors:
-          echo "[!] Error while checking for update"
-          echo "[*] Your system is up to date"
-          sendNotify("Parrot Updater", "Your system is up to date", "security-high")
+          #echo "  [!] Error while checking for update"
+          #echo "  [*] Your system is up to date"
+          handleNotify("Parrot Updater", "Your system is up to date", 0)
         # If all mirrors has error, return error
         else:
-          echo "[x] Error while checking for update"
-          sendNotify("Parrot Updater", "Your system hasn't been updated on new mirror", "security-low")
+          #echo "  [x] Error while checking for update"
+          handleNotify("Parrot Updater", "Your system hasn't been updated on new mirror", 2)
           return -1
     return numOutOfDated
 
 
 proc onUpdateCompleted(v: Terminal, signal: int) =
   if signal == 0:
-    echo "[*] Update completed"
-    sendNotify("Parrot Updater", "Your system is upgraded", "security-high")
+    #echo "  [*] Update completed"
+    handleNotify("Parrot Updater", "Your system is upgraded", 0)
   elif signal == 256:
-    sendNotify("Parrot Updater", "Authentication error: Wrong password", "security-low")
-    echo "[x] Authentication error: Wrong password"
+    handleNotify("Parrot Updater", "Authentication error: Wrong password", 2)
+    #echo "  [x] Authentication error: Wrong password"
   elif signal == 9:
     # FIX me: app shows 2 times
-    sendNotify("Parrot Updater", "Cancelled by user", "security-low")
-    echo "[x] Cancelled by user"
+    handleNotify("Parrot Updater", "Cancelled by user", 2)
+    #echo "  [x] Cancelled by user"
   else:
-    sendNotify("Parrot Updater", "Error while running parrot-upgrade", "security-low")
-    echo "[x] Failed to update"
+    handleNotify("Parrot Updater", "Error while running parrot-upgrade", 2)
+    #echo "  [x] Failed to update"
   mainQuit()
 
 
