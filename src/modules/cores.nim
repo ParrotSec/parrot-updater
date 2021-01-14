@@ -1,18 +1,11 @@
 import strutils
+import osproc
 
-type
-  Mirror* = object
-    url*: string
-    edition*: string
 
 var userChoice*: bool
 
-const
-  repoConfig* = "/etc/apt/sources.list.d/parrot.list"
-  localRepoIndex* = "/var/lib/apt/lists/"
 
-
-iterator readTextLines*(data: string): TaintedString =
+iterator readTextLines(data: string): TaintedString =
   var txt: string
   for chr in data:
     if chr != '\n':
@@ -31,13 +24,13 @@ proc fileNameToURL*(fileName: string): string =
   return "https://" & fileName.split("/")[^1].replace("_", "/")
 
 
-proc urlToFileName*(url, edition: string): string =
+proc urlToIndexFile*(url, edition: string): string =
   #[
     Convert URL in source list to file name that will be saved at $localRepoIndex
     Return release file that was saved in system
   ]#
-  let info = url.split("/")
-  return info[2] & "_" & info[3] & "_dists_" & edition & "_InRelease"
+
+  return url.split("://")[1].replace("/", "_") & "_dists_" & edition & "_InRelease"
 
 
 proc urlToRepoURL*(url, edition: string): string =
@@ -64,3 +57,13 @@ proc parseDateFromText*(data: string): string =
   for line in readTextLines(data):
     if line.startsWith("Date: "):
       return line
+
+
+proc getUpgradeablePackages*(): int =
+  #[
+    Get all packages that wasn't upgraded by apt
+  ]#
+  let
+    cmd = "apt list --upgradeable"
+    output = execProcess(cmd)
+  return count(output, "/")

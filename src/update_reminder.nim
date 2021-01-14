@@ -2,10 +2,18 @@ import strutils
 import httpclient
 import os
 import gintro / [gtk, gobject, glib, notify, vte]
-import osproc
 import modules / cores
 
 let isDesktop = if getEnv("XDG_CURRENT_DESKTOP") == "": false else: true
+var
+  mainRepoCount = 0
+  mainRepoHasUpdate = 0
+  mainRepoHasError = 0
+  mainRepoIndexNotFound = 0
+  otherRepoCount = 0
+  otherRepoHasUpdate = 0
+  otherRepoHasError = 0
+  otherRepoIndexNotFound = 0
 
 
 proc updateServerChange*(url: string): string =
@@ -61,136 +69,111 @@ proc onExit(w: Window) =
   mainQuit()
 
 
-proc getUpgradeablePackages(): int =
-  let
-    cmd = "apt list --upgradeable"
-    output = execProcess(cmd)
-  return count(output, "/")
+proc handleSourceList(path: string) =
+  #[
+    Parse line to get information of mirror
+    Debian format `deb [arch] url distribution component1 component2 component3`
+    arch is optional
+  ]#
+  let isParrotRepo = if path.split("/")[^1] == "parrot.list": true else: false
+  if isParrotRepo:
+    mainRepoCount += 1
+  else:
+    otherRepoCount += 1
+
+  for line in lines(path):
+    try:
+      if line.startsWith("deb "):
+        let elements = line.split(" ")
+        var
+          indexPath = "/var/lib/apt/lists/"
+          url, distribution: string
+        if elements[1].startsWith("http"):
+          #[
+            No arch found. We have format `deb url distro components...`
+            We pass URL and distro to generate index file.
+          ]#
+          url = elements[1]
+          distribution = elements[2]
+        else:
+          url = elements[2]
+          distribution = elements[3]
+        
+        indexPath &= urlToIndexFile(url, distribution)
+
+        if not fileExists(indexPath):
+          # We found no index file in /var/lib/apt/lists/
+          # Return error here
+          if isParrotRepo:
+            mainRepoIndexNotFound += 1
+          else:
+            otherRepoIndexNotFound += 1
+        else:
+          # Everything is good. We get Date section from file
+          let
+            localDate = parseDateFromFile(indexPath)
+            serverDate = parseDateFromText(updateServerChange(urlToRepoURL(url, distribution)))
+          if localDate != serverDate:
+            # Return code of has update
+            if isParrotRepo:
+              mainRepoHasUpdate += 1
+            else:
+              otherRepoHasUpdate += 1
+          else:
+            # No update
+            discard
+    except:
+      if isParrotRepo:
+        mainRepoHasError += 1
+      else:
+        otherRepoHasError += 1
 
 
 proc checkUpdate(): int =
-  # TODO handle parrot's update and 3rd parties update at 1
-  var
-    numOutOfDated = 0
-    numErrors = 0
-    checked = 0
-    mirrorIndexes: seq[string]
-    cdnIndexes: seq[string]
+  let pathSourceList = "/etc/apt/sources.list.d/"
+  for kind, path in walkDir(pathSourceList):
+    handleSourceList(path)
   
-  # Check all local index files
-  for kind, path in walkDir(localRepoindex):
-    if kind == pcFile and path.endsWith("InRelease"):
-      let mirrorIndex = path.split("/")[^1]
-      if mirrorIndex.startsWith("deb.parrot") or mirrorIndex.startsWith("mirror.parrot"):
-        cdnIndexes.add(path)
-      else:
-        mirrorIndexes.add(path)
-
-  # If there is no index
-  if len(mirrorIndexes) == 0 and len(cdnIndexes) == 0:
-    # FIXME the code takes other repository as address
-    handleNotify("Your system hasn't been updated", "Local index is missing. Please run parrot-upgrade", 1)
+  if mainRepoCount == 0 and otherRepoCount == 0:
+    handleNotify("Sources list error", "No source list found")
     return -1
   else:
-    for line in lines(repoConfig):
-      # Check for binary only. skip deb-src
-      if line.startsWith("deb "):
-        let
-          info = line.split(" ")
-        var
-          mirror = Mirror(
-            url: info[1],
-            edition: info[2]
-          )
-        echo "  [i] Checking [" & mirror.url & "] [" & mirror.edition & "]"
-        checked += 1
-        # If system is using cdn, we try using mirror url
-        if mirror.url.startsWith("https://deb.parrot.sh") or mirror.url.startsWith("https://deb.parrotsec.org") or mirror.url.startsWith("https://mirror.parrot.sh"):
-          var
-            localDate: string
-            serverDate: string
-          # Check if system doesn't have mirror index, we use main url
-          # What if multiple url, and duplicate?
-          if len(mirrorIndexes) == 0:
-            localDate = parseDateFromFile(cdnIndexes[0])
-            serverDate = parseDateFromText(updateServerChange(urlToRepoURL(mirror.url, mirror.edition)))
-          # We have mirror. Do the check with mirror URL on server
-          else:
-            localDate = parseDateFromFile(mirrorIndexes[0])
-            # let newMirrorURL = fileNameToURL(mirrorIndexes[0])
-            mirror.url = fileNameToURL(mirrorIndexes[0])
-            echo "  [i] Switch to mirror " & mirror.url
-            serverDate = parseDateFromText(updateServerChange(mirror.url))
-          if localDate != serverDate:
-            echo "  [!] New update is available on " & mirror.edition
-            echo "  [+] Your last update: " & localDate
-            echo "  [+] Repo last update: " & serverDate
-            handleNotify("New update is available on " & mirror.edition, "Server " & serverDate & "\nMachine " & localDate, 2)
-            numOutOfDated += 1
-        # Else (mirror url directly), we check update directly
-        else:
-          if len(mirrorIndexes) == 0:
-            echo "  [x] Missing index of " & mirror.url
-            handleNotify("Parrot update", "Index for current mirror is missing", 2)
-            numErrors += 1
-            # numOutOfDated = -1
-          else:
-            let
-              fileFromURL = localRepoIndex & urlToFileName(mirror.url, mirror.edition)
-            if fileExists(fileFromURL):
-              let
-                localDate = parseDateFromFile(fileFromURL)
-                serverDate = parseDateFromText(updateServerChange(urlToRepoURL(mirror.url, mirror.edition)))
-              if localDate != serverDate:
-                echo "  [!] New update is available on " & mirror.edition
-                echo "  [+] Your last update: " & localDate
-                echo "  [+] Repo last update: " & serverDate
-                handleNotify("New update is available on " & mirror.edition, "Server " & serverDate & "\nMachine " & localDate, 2)
-                numOutOfDated += 1
-            else:
-              echo "  [x] Missing index of " & mirror.url
-              numErrors += 1
-    # Complete for loop. Get the result
-    if numOutOfDated > 0:
-      echo "  [!] Your system need to update"
-    elif numOutOfDated == 0:
-      if numErrors == 0:
-        let notInstalled = getUpgradeablePackages()
-        if notInstalled == 0:
-          #echo "  [*] Your system is up to date"
-          handleNotify("Parrot Updater", "Your system is up to date", 0)
-        else:
-          #echo "  [!] ", notInstalled, " package[s] are not upgraded"
-          handleNotify("Parrot Updater", intToStr(notInstalled) & " package[s] are not upgraded", 1)
-          return notInstalled
+    if mainRepoHasUpdate > 0:
+      handleNotify("Parrot OS has new update", "" , 2)
+      return 1
+    elif otherRepoHasUpdate > 0:
+      handleNotify("New update from software repository", "" , 1)
+      return 1
+    else:
+      if mainRepoIndexNotFound > 0:
+        handleNotify("Your system hasn't been upgraded", "Upgrade now for latest security patches", 2)
+        return 1
+      elif otherRepoIndexNotFound > 0:
+        # Maybe have a bug for weird index file
+        handleNotify("Some software hasn't upgraded", "Upgrade now for latest security patches", 1)
+        return 1
+      elif mainRepoHasError > 0: # TODO check for 3rd parties. If all has error
+        handleNotify("Parrot Updater", "Error while checking update for Parrot", 2) # Error while checking update for parrot only. 3rd doesn't count
+        return -1
       else:
-        # If 1 or more mirror doens't have error, we still count (old unused mirror?)
-        if checked < numErrors:
-          #echo "  [!] Error while checking for update"
-          #echo "  [*] Your system is up to date"
-          handleNotify("Parrot Updater", "Your system is up to date", 0)
-        # If all mirrors has error, return error
+        let needUpgradePackages = getUpgradeablePackages()
+        if needUpgradePackages == 0:
+          handleNotify("Your system is up to date", "verbose msg", 0)
         else:
-          #echo "  [x] Error while checking for update"
-          handleNotify("Parrot Updater", "Your system hasn't been updated on new mirror", 2)
-          return -1
-    return numOutOfDated
+          handleNotify("Upgradeable packages", "verbose msg", 1)
+        return needUpgradePackages
 
 
 proc onUpdateCompleted(v: Terminal, signal: int) =
   if signal == 0:
-    #echo "  [*] Update completed"
     handleNotify("Parrot Updater", "Your system is upgraded", 0)
   elif signal == 256:
     handleNotify("Parrot Updater", "Authentication error: Wrong password", 2)
-    #echo "  [x] Authentication error: Wrong password"
   elif signal == 9:
     # FIX me: app shows 2 times
-    handleNotify("Parrot Updater", "Cancelled by user", 2)
-    #echo "  [x] Cancelled by user"
+    handleNotify("Parrot Updater", "Cancelled by user", 1)
   else:
     handleNotify("Parrot Updater", "Error while running parrot-upgrade", 2)
-    #echo "  [x] Failed to update"
   mainQuit()
 
 
