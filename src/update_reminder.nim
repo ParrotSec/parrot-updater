@@ -158,9 +158,9 @@ proc checkUpdate(): int =
       else:
         let needUpgradePackages = getUpgradeablePackages()
         if needUpgradePackages == 0:
-          handleNotify("Your system is up to date", "verbose msg", 0)
+          handleNotify("Your system is up to date", "", 0)
         else:
-          handleNotify("Upgradeable packages", "verbose msg", 1)
+          handleNotify("Upgradeable packages", intToStr(needUpgradePackages) & " package[s] are not upgraded", 1)
         return needUpgradePackages
 
 
