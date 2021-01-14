@@ -142,7 +142,7 @@ proc checkUpdate(): int =
       handleNotify("Parrot OS has new update", "" , 2)
       return 1
     elif otherRepoHasUpdate > 0:
-      handleNotify("New update from software repository", "" , 1)
+      handleNotify("Other vendor updates are available", intToStr(otherRepoHasUpdate) & " / " & intToStr(otherRepoCount) & " of third-party has new update" , 1)
       return 1
     else:
       if mainRepoIndexNotFound > 0:
@@ -150,17 +150,20 @@ proc checkUpdate(): int =
         return 1
       elif otherRepoIndexNotFound > 0:
         # Maybe have a bug for weird index file
-        handleNotify("Some software hasn't upgraded", "Upgrade now for latest security patches", 1)
+        handleNotify("Other vendor updates are required", intToStr(otherRepoIndexNotFound) & " / " & intToStr(otherRepoCount) & " of third-party hasn't upgraded", 1)
         return 1
-      elif mainRepoHasError > 0: # TODO check for 3rd parties. If all has error
-        handleNotify("Parrot Updater", "Error while checking update for Parrot", 2) # Error while checking update for parrot only. 3rd doesn't count
-        return -1
+      elif mainRepoHasError > 0:
+        handleNotify("Error while checking for update", "Error while checking update for Parrot", 2)
+        return 1
+      elif otherRepoHasError > 0:
+        handleNotify("Error while checking for update", "Error while checking update for other vendors", 2)
+        return 1
       else:
         let needUpgradePackages = getUpgradeablePackages()
         if needUpgradePackages == 0:
           handleNotify("Your system is up to date", "", 0)
         else:
-          handleNotify("Upgradeable packages", intToStr(needUpgradePackages) & " package[s] are not upgraded", 1)
+          handleNotify("Upgrades are required", intToStr(needUpgradePackages) & " package[s] are not upgraded", 1)
         return needUpgradePackages
 
 
@@ -252,7 +255,7 @@ proc askUpgradePopup(): Dialog =
 
 proc onClickUpdate(b: Button, d: Dialog) =
   # d.destroy()
-  sendNotify("Parrot Update", "Start checking for update", "security-high")
+  sendNotify("Parrot Update", "Start checking for updates", "security-high")
   userChoice = true
 
 
