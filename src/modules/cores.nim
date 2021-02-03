@@ -24,21 +24,21 @@ proc fileNameToURL*(fileName: string): string =
   return "https://" & fileName.split("/")[^1].replace("_", "/")
 
 
-proc urlToIndexFile*(url, edition: string): string =
+proc urlToIndexFile*(url, distribution: string): string =
   #[
     Convert URL in source list to file name that will be saved at $localRepoIndex
     Return release file that was saved in system
   ]#
 
-  return url.split("://")[1].replace("/", "_") & "_dists_" & edition & "_InRelease"
+  return url.split("://")[1].replace("/", "_") & "_dists_" & distribution & "_InRelease"
 
 
-proc urlToRepoURL*(url, edition: string): string =
+proc urlToRepoURL*(url, distribution: string): string =
   #[
     Convert URL in source list repo URL
     Return full URL that contains Release file
   ]#
-  return url & "/dists/" & edition & "/InRelease"
+  return url & "/dists/" & distribution & "/InRelease"
 
 
 proc parseDateFromFile*(filePath: string): string =
