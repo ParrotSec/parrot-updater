@@ -305,8 +305,7 @@ proc startUpdate(w: Window) =
         startUpgrade()
 
 
-proc main() =
-  # TODO handle popup and cli ask here
+proc gtkUpdateCheck() =
   #[
     Create new window
   ]#
@@ -350,4 +349,9 @@ proc main() =
 
   mainBoard.connect("destroy", onExit)
 
-main()
+if isDesktop:
+  gtkUpdateCheck()
+else:
+  let updateResult = checkUpdate()
+  if updateResult != 0:
+    startUpgrade()
