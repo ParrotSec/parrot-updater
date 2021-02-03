@@ -212,7 +212,7 @@ proc startUpgrade() =
     upgradeCallback, # callback
     nil, # pointer
   )
-  upgradeDialog.add(boxUpgrade)
+  upgradeDialog.packStart(boxUpgrade, true, true, 3)
   upgradeDialog.connect("destroy", onExit)
 
   upgradeDialog.showAll()
