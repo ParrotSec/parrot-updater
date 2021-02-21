@@ -186,19 +186,15 @@ proc upgradeCallback(terminal: ptr Terminal00; pid: int32; error: ptr glib.Error
 
 proc startUpgrade() =
   #[
-    Spawn a native GTK terminal and run nyx with it to show current tor status
+    Spawn a native GTK terminal
   ]#
   let
-    upgradeDialog = newWindow()
     boxUpgrade = newBox(Orientation.vertical, 3)
-    doUpgrade = newTerminal()
+    vteUpgrade = newTerminal()
   
-  boxUpgrade.add(doUpgrade)
-
-  upgradeDialog.setTitle("Parrot Upgrade")
-  upgradeDialog.setPosition(WindowPosition.center)
-  doUpgrade.connect("child-exited", onUpdateCompleted)
-  doUpgrade.spawnAsync(
+  boxUpgrade.packStart(vteUpgrade, true, true, 3)
+  vteUpgrade.connect("child-exited", onUpdateCompleted)
+  vteUpgrade.spawnAsync(
     {noLastlog}, # pty flags
     nil, # working directory
     ["/usr/bin/sudo", "/usr/bin/parrot-upgrade"], # args
@@ -212,7 +208,10 @@ proc startUpgrade() =
     upgradeCallback, # callback
     nil, # pointer
   )
-  upgradeDialog.packStart(boxUpgrade, true, true, 3)
+  let upgradeDialog = newWindow()
+  upgradeDialog.setTitle("Parrot Upgrade")
+  upgradeDialog.setPosition(WindowPosition.center)
+  upgradeDialog.add(boxUpgrade)
   upgradeDialog.connect("destroy", onExit)
 
   upgradeDialog.showAll()
