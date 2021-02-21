@@ -5,7 +5,7 @@ import osproc
 var userChoice*: bool
 type
   NeedUpgrade* = object
-    pkgList*: seq[string]
+    pkgList*: string
     pkgCount*: int
 
 iterator readTextLines(data: string): TaintedString =
@@ -71,10 +71,11 @@ proc getUpgradeablePackages*(): NeedUpgrade =
     output = execProcess(cmd)
   var
     count = 0
-    pkg: seq[string]
+    pkg = ""
   for line in readTextLines(output):
     if "/" in line:
       count += 1
-      pkg.add(line)
+      pkg &= line & "\n"
+  
   result.pkgList = pkg
   result.pkgCount = count

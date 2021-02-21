@@ -232,11 +232,37 @@ proc onClickDontUpgrade(b: Button, d: Dialog) =
   d.destroy()
 
 
+proc showUpgradable(b: Button) =
+  #[
+    Show all upgradeble packages from `apt list --upgradable` in a new dialog
+  ]#
+  let
+    retDialog = newDialog()
+    areaDialog = getContentArea(retDialog)
+    listPkg = newTextView()
+    listPkgBuffer = getBuffer(listPkg)
+    scrollWindow = newScrolledWindow()
+  
+  listPkg.setEditable(false)
+  listPkg.setCursorVisible(false)
+
+  listPkgbuffer.setText(needUpradeStatus.pkgList, len(needUpradeStatus.pkgList))
+
+  scrollWindow.add(listPkg)
+  areaDialog.add(scrollWindow)
+
+  retDialog.title = "Upgradable packages"
+  retDialog.setResizable(false)
+  retDialog.showAll()
+  retDialog.setDefaultSize(300, -1)
+  discard retDialog.run()
+  retDialog.destroy()
+
+
 proc askUpgradePopup() =
   #[
     Ask user do they want to update
   ]#
-  # FIXME 2 layout of boxbutton
   let
     retDialog = newDialog()
     bDialog = getContentArea(retDialog)
@@ -250,13 +276,16 @@ proc askUpgradePopup() =
   btnN.connect("clicked", onClickDontUpgrade, retDialog)
   btnY.grabFocus()
   if needUpradeStatus.pkgCount != 0:
-    boxbuttons.add(btnView)
-  boxButtons.add(btnY)
-  boxButtons.add(btnN)
+    btnView.connect("clicked", showUpgradable)
+    boxbuttons.packStart(btnView, false, false, 3)
+  boxButtons.packEnd(btnN, false, false, 3)
+  boxButtons.packEnd(btnY, false, false, 3)
+
   retDialog.title = "System upgrade"
+  retDialog.setResizable(false)
 
   bDialog.packStart(labelAsk, true, true, 3)
-  bDialog.packStart(boxButtons, true, true, 3)
+  bDialog.packEnd(boxButtons, true, true, 3)
   retDialog.showAll()
   discard retDialog.run()
   retDialog.destroy()
