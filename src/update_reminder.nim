@@ -165,7 +165,6 @@ proc checkUpdate(): int =
           handleNotify("Your system is up to date", "", 0)
         else:
           handleNotify("Upgrades are required", intToStr(needUpradeStatus.pkgCount) & " package[s] are not upgraded", 1)
-          # TODO add option to show list of upgradable
         return needUpradeStatus.pkgCount
 
 
