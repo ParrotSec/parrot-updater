@@ -169,6 +169,7 @@ proc checkUpdate(): int =
 
 
 proc onUpdateCompleted(v: Terminal, signal: int) =
+  var quit = true
   if signal == 0:
     handleNotify("Parrot Updater", "Your system is upgraded", 0)
   elif signal == 256:
@@ -178,8 +179,9 @@ proc onUpdateCompleted(v: Terminal, signal: int) =
     handleNotify("Parrot Updater", "Cancelled by user", 1)
   else:
     handleNotify("Parrot Updater", "Error while running parrot-upgrade", 2)
-    # TODO Show error dialog. Show list of failed install packages
-  mainQuit()
+    quit = false
+  if quit:
+    mainQuit()
 
 
 proc upgradeCallback(terminal: ptr Terminal00; pid: int32; error: ptr glib.Error; userData: pointer) {.cdecl.} =
