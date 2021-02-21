@@ -14,6 +14,7 @@ var
   otherRepoHasUpdate = 0
   otherRepoHasError = 0
   otherRepoIndexNotFound = 0
+  needUpradeStatus: NeedUpgrade
 
 
 proc updateServerChange*(url: string): string =
@@ -159,12 +160,13 @@ proc checkUpdate(): int =
         handleNotify("Error while checking for update", "Error while checking update for other vendors", 2)
         return 1
       else:
-        let needUpgradePackages = getUpgradeablePackages()
-        if needUpgradePackages == 0:
+        needUpradeStatus = getUpgradeablePackages()
+        if needUpradeStatus.pkgCount == 0:
           handleNotify("Your system is up to date", "", 0)
         else:
-          handleNotify("Upgrades are required", intToStr(needUpgradePackages) & " package[s] are not upgraded", 1)
-        return needUpgradePackages
+          handleNotify("Upgrades are required", intToStr(needUpradeStatus.pkgCount) & " package[s] are not upgraded", 1)
+          # TODO add option to show list of upgradable
+        return needUpradeStatus.pkgCount
 
 
 proc onUpdateCompleted(v: Terminal, signal: int) =
@@ -177,6 +179,7 @@ proc onUpdateCompleted(v: Terminal, signal: int) =
     handleNotify("Parrot Updater", "Cancelled by user", 1)
   else:
     handleNotify("Parrot Updater", "Error while running parrot-upgrade", 2)
+    # TODO Show error dialog. Show list of failed install packages
   mainQuit()
 
 
@@ -219,44 +222,50 @@ proc startUpgrade() =
 
 
 proc onClickUpgrade(b: Button, d: Dialog) =
-  # d.destroy()
+  d.destroy()
   userChoice = true
-  # sendNotify("Parrot Upgrade", "Completed", "security-high")
+  startUpgrade()
 
 
 proc onClickDontUpgrade(b: Button, d: Dialog) =
   userChoice = false
-  # d.destroy()
+  d.destroy()
 
 
-proc askUpgradePopup(): Dialog =
+proc askUpgradePopup() =
   #[
     Ask user do they want to update
   ]#
+  # FIXME 2 layout of boxbutton
   let
     retDialog = newDialog()
     bDialog = getContentArea(retDialog)
     labelAsk = newLabel("Do you want to upgrade?")
+    boxButtons = newBox(Orientation.horizontal, 3)
     btnY = newButton("Yes")
     btnN = newButton("No")
+    btnView = newButton("Show upgradable")
   
   btnY.connect("clicked", onClickUpgrade, retDialog)
   btnN.connect("clicked", onClickDontUpgrade, retDialog)
   btnY.grabFocus()
-  retDialog.addActionWidget(btnY, 1)
-  retDialog.addActionWidget(btnN, 0)
+  if needUpradeStatus.pkgCount != 0:
+    boxbuttons.add(btnView)
+  boxButtons.add(btnY)
+  boxButtons.add(btnN)
   retDialog.title = "System upgrade"
 
-  bDialog.add(labelAsk)
+  bDialog.packStart(labelAsk, true, true, 3)
+  bDialog.packStart(boxButtons, true, true, 3)
   retDialog.showAll()
-  return retDialog
+  discard retDialog.run()
+  retDialog.destroy()
 
 
 proc onClickUpdate(b: Button, d: Dialog) =
   # d.destroy()
   sendNotify("Parrot Update", "Start checking for updates", "security-high")
   userChoice = true
-
 
 
 proc onClickDontUpdate(b: Button, d: Dialog) =
@@ -295,13 +304,10 @@ proc startUpdate(w: Window) =
   discard updateDialog.run()
   updateDialog.destroy()
   if userChoice:
+    userChoice = false
     let updateResult = checkUpdate()
     if updateResult != 0:
-      let upgrade = askUpgradePopup()
-      discard upgrade.run()
-      upgrade.destroy()
-      if userChoice:
-        startUpgrade()
+      askUpgradePopup()
 
 
 proc gtkUpdateCheck() =
@@ -335,11 +341,7 @@ proc gtkUpdateCheck() =
       # Skip ask user for check update.
       let updateResult = checkUpdate()
       if updateResult != 0:
-        let upgrade = askUpgradePopup()
-        discard upgrade.run()
-        upgrade.destroy()
-        if userChoice:
-          startUpgrade()
+        askUpgradePopup()
     elif paramStr(1) == "scheduled":
       # Ask user before start apt
       startUpdate(mainBoard)

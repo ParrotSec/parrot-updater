@@ -3,7 +3,10 @@ import osproc
 
 
 var userChoice*: bool
-
+type
+  NeedUpgrade* = object
+    pkgList*: seq[string]
+    pkgCount*: int
 
 iterator readTextLines(data: string): TaintedString =
   var txt: string
@@ -59,11 +62,19 @@ proc parseDateFromText*(data: string): string =
       return line
 
 
-proc getUpgradeablePackages*(): int =
+proc getUpgradeablePackages*(): NeedUpgrade =
   #[
     Get all packages that wasn't upgraded by apt
   ]#
   let
     cmd = "apt list --upgradeable"
     output = execProcess(cmd)
-  return count(output, "/")
+  var
+    count = 0
+    pkg: seq[string]
+  for line in readTextLines(output):
+    if "/" in line:
+      count += 1
+      pkg.add(line)
+  result.pkgList = pkg
+  result.pkgCount = count
