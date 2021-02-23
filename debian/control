@@ -5,7 +5,7 @@ Maintainer: Parrot Team <parrot-devel@lists.parrotsec.org>
 Uploaders: Lorenzo "Palinuro" Faletra <palinuro@frozenbox.org>,
            Irene "Tissy" Pirrotta <tissy@parrotsec.org>
            Nong Hoang "DmKnght" Tu <dmknght@parrotsec.org>
-Standards-Version: 4.5.0
+Standards-Version: 4.5.1
 Build-Depends: debhelper-compat (=12), nim, libnim-gintro-dev
 Build-Depends-Indep: pkg-config
 Homepage: http://www.parrotsec.org/
