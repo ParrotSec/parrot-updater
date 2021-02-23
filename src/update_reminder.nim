@@ -174,9 +174,10 @@ proc onUpdateCompleted(v: Terminal, signal: int) =
     handleNotify("Parrot Updater", "Your system is upgraded", 0)
   elif signal == 256:
     handleNotify("Parrot Updater", "Authentication error: Wrong password", 2)
-  elif signal == 9:
-    # FIX me: app shows 2 times
+  elif signal == 9 or signal == 2:
+    # When user cancel upgrade (using apt) by press control + C, signal is 2
     handleNotify("Parrot Updater", "Cancelled by user", 1)
+    quit = true
   else:
     handleNotify("Parrot Updater", "Error while running parrot-upgrade", 2)
     quit = false
@@ -267,7 +268,7 @@ proc askUpgradePopup() =
   let
     retDialog = newDialog()
     bDialog = getContentArea(retDialog)
-    labelAsk = newLabel("Do you want to upgrade?")
+    labelAsk = newLabel("Do you want to upgrade your system?")
     boxButtons = newBox(Orientation.horizontal, 3)
     btnY = newButton("Yes")
     btnN = newButton("No")
@@ -276,11 +277,12 @@ proc askUpgradePopup() =
   btnY.connect("clicked", onClickUpgrade, retDialog)
   btnN.connect("clicked", onClickDontUpgrade, retDialog)
   btnY.grabFocus()
+  boxButtons.packEnd(btnN, false, false, 3)
+  boxButtons.packStart(btnY, false, false, 3)
+
   if needUpradeStatus.pkgCount != 0:
     btnView.connect("clicked", showUpgradable)
-    boxbuttons.packStart(btnView, false, false, 3)
-  boxButtons.packEnd(btnN, false, false, 3)
-  boxButtons.packEnd(btnY, false, false, 3)
+    boxbuttons.packStart(btnView, true, true, 3)
 
   retDialog.title = "System upgrade"
   retDialog.setResizable(false)
