@@ -1,3 +1,10 @@
+parrot-updater (0.11-parrot0) rolling-testing; urgency=medium
+
+  * Add show upgradable packages
+  * Improve VTE close logic
+
+ -- Nong Hoang "DmKnght" Tu <dmknght@parrotsec.org>  Tue, 23 Feb 2021 16:42:47 +0700
+
 parrot-updater (0.10-parrot1) rolling-testing; urgency=medium
 
   * Update debian standard to 4.5.0
