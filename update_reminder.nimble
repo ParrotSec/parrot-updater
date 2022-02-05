@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.11.0"
 author        = "DmKnght"
 description   = "A new update reminder for Parrot OS"
 license       = "GPL-3.0"
@@ -11,4 +11,4 @@ bin           = @["update_reminder"]
 
 # Dependencies
 
-requires "nim >= 1.2.6"
+requires "nim >= 1.6.2"
