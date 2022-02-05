@@ -248,7 +248,7 @@ proc showUpgradable(b: Button) =
   listPkg.setEditable(false)
   listPkg.setCursorVisible(false)
 
-  listPkgbuffer.setText(needUpradeStatus.pkgList, len(needUpradeStatus.pkgList))
+  listPkgbuffer.setText(cstring(needUpradeStatus.pkgList), len(needUpradeStatus.pkgList))
 
   scrollWindow.add(listPkg)
   areaDialog.add(scrollWindow)

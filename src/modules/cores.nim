@@ -8,7 +8,7 @@ type
     pkgList*: string
     pkgCount*: int
 
-iterator readTextLines(data: string): TaintedString =
+iterator readTextLines(data: string): string =
   var txt: string
   for chr in data:
     if chr != '\n':
