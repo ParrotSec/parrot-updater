@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.11.0"
+version       = "1.0.0"
 author        = "DmKnght"
 description   = "A new update reminder for Parrot OS"
 license       = "GPL-3.0"

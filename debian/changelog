@@ -1,3 +1,11 @@
+parrot-updater (1.0.0) parrot-updates; urgency=medium
+
+  * Rewrite code base
+  * Add support for $(ARCH) and better URL handing
+  * Fix issues of update calculation
+
+ -- Nong Hoang "DmKnght" Tu <dmknght@parrotsec.org>  Sun, 06 Feb 2022 17:18:04 +0700
+
 parrot-updater (0.11) rolling-testing; urgency=medium
 
   * Add show upgradable packages
