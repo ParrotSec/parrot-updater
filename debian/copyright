@@ -16,7 +16,7 @@ Files:
   src/*
   update_reminder.nimble
   Makefile
-Copyright: 2020, Nong Hoang "dmknght" Tu <dmknght@parrotsec.org>
+Copyright: 2020 - 2022, Nong Hoang "dmknght" Tu <dmknght@parrotsec.org>
 License: GPL-3.0+
 
 License: GPL-3.0+
