@@ -21,6 +21,9 @@ type
   NeedUpgrade* = object
     pkgList*: string
     pkgCount*: int
+  HTTPData* = object
+    isErr*: bool
+    body*: string
 
 var userChoice*: bool
 
@@ -113,22 +116,30 @@ proc aptSourceToURL*(repo: var RepoIndex, line: string) =
   if "[" in line:
     startPos = 2
   
-  if splitedLine[startPos].endsWith("/parrot"):
+  repo.repoUrl = splitedLine[startPos]
+  if repo.repoUrl.endsWith("/parrot"):
     repo.isParrotRepo = true
-    # return splitedLine[startPos] & "/dists/" & splitedLine[startPos + 1] & "/InRelease"
-    repo.repoUrl = splitedLine[startPos] & "/dists/" & splitedLine[startPos + 1] & "/InRelease"
-  else:
-    repo.repoUrl = splitedLine[startPos]
-    if not repo.repoUrl.endsWith("/"):
-      repo.repoUrl &= "/"
-    repo.repoUrl &= splitedLine[startPos + 1] & "InRelease"
-    if "$(ARCH)" in repo.repoUrl:
-      repo.repoUrl = repo.repoUrl.replace("$(ARCH)", repo.arch)
 
+  # Has components, add "/dists/"
+  if len(splitedLine) - 2 - startPos > 0:
+    repo.repoUrl &= "/dists/"
+  elif not repo.repoUrl.endsWith("/"):
+    repo.repoUrl &= "/"
+  
+  repo.repoUrl &= splitedLine[startPos + 1]
+
+  if not repo.repoUrl.endsWith("/"):
+    repo.repoUrl &= "/InRelease"
+  else:
+    repo.repoUrl &= "InRelease"
+
+  if "$(ARCH)" in repo.repoUrl:
+    repo.repoUrl = repo.repoUrl.replace("$(ARCH)", repo.arch)
 
 # doAssert aptSourceToURL("deb https://vietnam.deb.parrot.sh/parrot rolling-testing main contrib non-free") == "https://vietnam.deb.parrot.sh/parrot/dists/rolling-testing/InRelease"
 # doAssert aptSourceToURL("deb https://download.sublimetext.com/ apt/stable/") == "https://download.sublimetext.com/apt/stable/InRelease"
 # doAssert aptSourceToURL("deb https://download.sysdig.com/stable/deb stable-$(ARCH)/") == "https://download.sysdig.com/stable/deb/stable-amd64/InRelease"
+
 
 proc aptSourceToFile*(repo: var RepoIndex, line: string) =
   #[
@@ -140,7 +151,6 @@ proc aptSourceToFile*(repo: var RepoIndex, line: string) =
     -> /var/lib/apt/lists/download.sublimetext.com_apt_stable_InRelease
     deb https://download.sysdig.com/stable/deb stable-$(ARCH)/
     -> /var/lib/apt/lists/download.sysdig.com_stable_deb_stable-amd64_InRelease
-    # FIXME teamviewer has dist
   ]#
   let splitedLine = line.split(" ")
   #[
@@ -153,18 +163,23 @@ proc aptSourceToFile*(repo: var RepoIndex, line: string) =
   if "[" in line:
     startPos = 2
   
+  # Remove protocol
   repo.indexFile = splitedLine[startPos].split("://")[1].replace("/", "_")
+
   if repo.indexFile.endsWith("_parrot"):
     repo.isParrotRepo = true
-    repo.indexFile &= "_dists_" & splitedLine[startPos + 1] & "_InRelease"
-  else:  
-    if not repo.indexFile.endsWith("_"):
-      repo.indexFile &= "_"
-    repo.indexFile &= splitedLine[startPos + 1].replace("/", "_")
-    if not repo.indexFile.endsWith("_"):
-      repo.indexFile &= "_InRelease"
-    else:
-      repo.indexFile &= "InRelease"
+
+  # Has components, add "_dists_"
+  if len(splitedLine) - 2 - startPos > 0:
+    repo.indexFile &= "_dists_"
+  elif not repo.indexFile.endsWith("_"):
+    repo.indexFile &= "_"
+  repo.indexFile &= splitedLine[startPos + 1].replace("/", "_")
+
+  if not repo.indexFile.endsWith("_"):
+    repo.indexFile &= "_InRelease"
+  else:
+    repo.indexFile &= "InRelease"
   
   if "$(ARCH)" in repo.indexFile:
     repo.indexFile = repo.indexFile.replace("$(ARCH)", repo.arch)
@@ -175,7 +190,7 @@ proc aptSourceToFile*(repo: var RepoIndex, line: string) =
     echo "File not found ", repo.indexFile
     repo.indexFileErr = true
   else:
-    # echo "Using repo file ", repo.indexFile
+    echo "Found ", repo.indexFile
     repo.indexFileErr = false
   
 

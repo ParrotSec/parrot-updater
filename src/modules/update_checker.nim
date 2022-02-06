@@ -4,13 +4,22 @@ import strutils
 import httpclient
 
 
-proc getHTTPData*(url: string): string =
+proc getHTTPData*(url: string): HTTPData =
   #[
     Read Release file on server
   ]#
-  var client = newHttpClient()
-  let resp = client.get(url)
-  return resp.body
+  var
+    client = newHttpClient()
+    statusCheck: HTTPData
+  let
+    resp = client.get(url)
+  echo resp.status, " ", url
+  if not resp.status.startsWith("200 OK"):
+    statusCheck.isErr = true
+  else:
+    statusCheck.isErr = false
+    statusCheck.body = resp.body
+  return statusCheck
 
 
 proc doCheckUpdateForLines(line, arch: string): RepoIndex =
@@ -22,7 +31,13 @@ proc doCheckUpdateForLines(line, arch: string): RepoIndex =
   if sourceInfo.indexFileErr:
     return sourceInfo
   try:
-    if parseDateFromFile(sourceInfo.indexFile) != parseDateFromText(getHTTPData(sourceInfo.repoUrl)):
+    # If HTTP status code != 200, return error and don't do date comparison
+    let checkRepoUpdate = getHTTPData(sourceInfo.repoUrl)
+    if checkRepoUpdate.isErr:
+      sourceInfo.runtimeErr = true
+      return sourceInfo
+
+    if parseDateFromFile(sourceInfo.indexFile) != parseDateFromText(checkRepoUpdate.body):
       sourceInfo.hasUpdate = true
     else:
       echo "Up to date ", sourceInfo.repoUrl
