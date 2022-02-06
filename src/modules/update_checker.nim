@@ -1,5 +1,5 @@
 import os
-import new_cores
+import cores
 import strutils
 import httpclient
 
@@ -18,7 +18,7 @@ proc doCheckUpdateForLines(line, arch: string): RepoIndex =
   sourceInfo.arch = arch
   aptSourceToFile(sourceInfo, line)
   aptSourceToURL(sourceInfo, line)
-  # TODO handle error
+
   if sourceInfo.indexFileErr:
     return sourceInfo
   try:
@@ -34,53 +34,49 @@ proc doCheckUpdateForLines(line, arch: string): RepoIndex =
     return sourceInfo
 
 
-proc do_check_source_list*() =
+proc do_check_source_list*(): UpdateStatus =
   const
     sourceListFile = "/etc/apt/sources.list"
     sourceListDir = "/etc/apt/sources.list.d"
   let
     debArch = getDebArch()
   var
-    ParrotUpdate = 0
-    SideUpdate = 0
-    SourceErr = 0
-    RuntimeErr = 0
+    updateStatus = UpdateStatus(
+      parrotUpdate: 0,
+      sideUpdate: 0,
+      upgradable: 0,
+      runtimeErr: 0,
+      cacheErr: 0,
+    )
   
   for line in lines(sourceListFile):
     if line.startsWith("deb "):
       let repoInfo = doCheckUpdateForLines(line, debArch)
       if repoInfo.indexFileErr:
-        SourceErr += 1
+        updateStatus.cacheErr += 1
       elif repoInfo.runtimeErr:
-        RuntimeErr += 1
+        updateStatus.runtimeErr += 1
       elif repoInfo.isParrotRepo == true:
         if repoInfo.hasUpdate:
-          ParrotUpdate += 1
+          updateStatus.parrotUpdate += 1
       else:
         if repoInfo.hasUpdate:
-          SideUpdate += 1
-      
-  
+          updateStatus.sideUpdate += 1
+
   for kind, path in walkDir(sourceListDir):
     if path.endsWith(".list"):
       for line in lines(path):
         if line.startsWith("deb "):
           let repoInfo = doCheckUpdateForLines(line, debArch)
           if repoInfo.indexFileErr:
-            SourceErr += 1
+            updateStatus.cacheErr += 1
           elif repoInfo.runtimeErr:
-            RuntimeErr += 1
+            updateStatus.runtimeErr += 1
           elif repoInfo.isParrotRepo == true:
             if repoInfo.hasUpdate:
-              ParrotUpdate += 1
+              updateStatus.parrotUpdate += 1
           else:
             if repoInfo.hasUpdate:
-              SideUpdate += 1
-  
-  echo "Index error: ", SourceErr
-  echo "Runtime error: ", RuntimeErr
-  echo "Parrot Update: ", ParrotUpdate
-  echo "Side Update: ", SideUpdate
+              updateStatus.sideUpdate += 1
 
-
-do_check_source_list()
+  return updateStatus

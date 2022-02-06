@@ -1,29 +1,9 @@
 import strutils
-import httpclient
-import os
 import gintro / [gtk, gobject, glib, notify, vte]
-import modules / cores
+import modules / [cores, update_checker]
+import os
 
-let isDesktop = if getEnv("XDG_CURRENT_DESKTOP") == "": false else: true
-var
-  mainRepoCount = 0
-  mainRepoHasUpdate = 0
-  mainRepoHasError = 0
-  mainRepoIndexNotFound = 0
-  otherRepoCount = 0
-  otherRepoHasUpdate = 0
-  otherRepoHasError = 0
-  otherRepoIndexNotFound = 0
-  needUpradeStatus: NeedUpgrade
-
-
-proc updateServerChange*(url: string): string =
-  #[
-    Read Release file on server
-  ]#
-  var client = newHttpClient()
-  let resp = client.get(url)
-  return resp.body
+var countUpgrade: NeedUpgrade
 
 
 proc sendNotify(sumary, body, icon: string) =
@@ -63,109 +43,29 @@ proc handleNotify(title, msg: string, lvl = 0) =
       sendNotify(title, msg, "security-low")
 
 
+proc checkUpdate*(): int =
+  let updateResult = do_check_source_list()
+  if updateResult.parrotUpdate > 0:
+    handleNotify("Parrot OS has new update", "" , 2)
+    return 1
+  elif updateResult.sideUpdate > 0:
+    handleNotify("Other vendor updates are available", intToStr(updateResult.sideUpdate) & " updates from 3rd-party repositories" , 1)
+    return 1
+  else:
+    countUpgrade = getUpgradeablePackages()
+    if countUpgrade.pkgCount > 0:
+      handleNotify("Upgrades are required", intToStr(countUpgrade.pkgCount) & " package[s] are not upgraded", 1)
+    elif updateResult.runtimeErr > 0:
+      handleNotify("Runtime Error", intToStr(updateResult.runtimeErr) & " repositories got runtime errors", 2)
+    else:
+      handleNotify("Your system is up to date", "", 0)
+
+
 proc onExit(w: Window) =
   #[
     Close program by click on title bar
   ]#
   mainQuit()
-
-
-proc handleSourceList(path: string) =
-  #[
-    Parse line to get information of mirror
-    Debian format `deb [arch] url distribution component1 component2 component3`
-    arch is optional
-  ]#
-  let isParrotRepo = if path.split("/")[^1] == "parrot.list": true else: false
-  if isParrotRepo:
-    mainRepoCount += 1
-  else:
-    otherRepoCount += 1
-
-  for line in lines(path):
-    try:
-      if line.startsWith("deb "):
-        let elements = line.split(" ")
-        var
-          indexPath = "/var/lib/apt/lists/"
-          url, distribution: string
-        if elements[1].startsWith("http"):
-          #[
-            No arch found. We have format `deb url distro components...`
-            We pass URL and distro to generate index file.
-          ]#
-          url = elements[1]
-          distribution = elements[2]
-        else:
-          url = elements[2]
-          distribution = elements[3]
-        
-        indexPath &= urlToIndexFile(url, distribution)
-
-        if not fileExists(indexPath):
-          # We found no index file in /var/lib/apt/lists/
-          # Return error here
-          if isParrotRepo:
-            mainRepoIndexNotFound += 1
-          else:
-            otherRepoIndexNotFound += 1
-        else:
-          # Everything is good. We get Date section from file
-          let
-            localDate = parseDateFromFile(indexPath)
-            serverDate = parseDateFromText(updateServerChange(urlToRepoURL(url, distribution)))
-          if localDate != serverDate:
-            # Return code of has update
-            if isParrotRepo:
-              mainRepoHasUpdate += 1
-            else:
-              otherRepoHasUpdate += 1
-          else:
-            # No update
-            discard
-    except:
-      if isParrotRepo:
-        mainRepoHasError += 1
-      else:
-        otherRepoHasError += 1
-
-
-proc checkUpdate(): int =
-  let pathSourceList = "/etc/apt/sources.list.d/"
-  for kind, path in walkDir(pathSourceList):
-    handleSourceList(path)
-  
-  if mainRepoCount == 0 and otherRepoCount == 0:
-    handleNotify("Sources list error", "No source list found")
-    return -1
-  else:
-    if mainRepoHasUpdate > 0:
-      handleNotify("Parrot OS has new update", "" , 2)
-      return 1
-    elif otherRepoHasUpdate > 0:
-      handleNotify("Other vendor updates are available", intToStr(otherRepoHasUpdate) & " / " & intToStr(otherRepoCount) & " of third-party has new update" , 1)
-      return 1
-    else:
-      if mainRepoIndexNotFound > 0:
-        handleNotify("Your system hasn't been upgraded", "Upgrade now for latest security patches", 2)
-        return 1
-      elif otherRepoIndexNotFound > 0:
-        # Maybe have a bug for weird index file
-        handleNotify("Other vendor updates are required", intToStr(otherRepoIndexNotFound) & " / " & intToStr(otherRepoCount) & " of third-party hasn't upgraded", 1)
-        return 1
-      elif mainRepoHasError > 0:
-        handleNotify("Error while checking for update", "Error while checking update for Parrot", 2)
-        return 1
-      elif otherRepoHasError > 0:
-        handleNotify("Error while checking for update", "Error while checking update for other vendors", 2)
-        return 1
-      else:
-        needUpradeStatus = getUpgradeablePackages()
-        if needUpradeStatus.pkgCount == 0:
-          handleNotify("Your system is up to date", "", 0)
-        else:
-          handleNotify("Upgrades are required", intToStr(needUpradeStatus.pkgCount) & " package[s] are not upgraded", 1)
-        return needUpradeStatus.pkgCount
 
 
 proc onUpdateCompleted(v: Terminal, signal: int) =
@@ -248,7 +148,7 @@ proc showUpgradable(b: Button) =
   listPkg.setEditable(false)
   listPkg.setCursorVisible(false)
 
-  listPkgbuffer.setText(cstring(needUpradeStatus.pkgList), len(needUpradeStatus.pkgList))
+  listPkgbuffer.setText(cstring(countUpgrade.pkgList), len(countUpgrade.pkgList))
 
   scrollWindow.add(listPkg)
   areaDialog.add(scrollWindow)
@@ -280,7 +180,7 @@ proc askUpgradePopup() =
   boxButtons.packEnd(btnN, false, false, 3)
   boxButtons.packStart(btnY, false, false, 3)
 
-  if needUpradeStatus.pkgCount != 0:
+  if countUpgrade.pkgCount != 0:
     btnView.connect("clicked", showUpgradable)
     boxbuttons.packStart(btnView, true, true, 3)
 

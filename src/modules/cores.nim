@@ -1,12 +1,29 @@
 import strutils
+import os
 import osproc
+# https://wiki.debian.org/DebianRepository/Format
 
-
-var userChoice*: bool
 type
+  RepoIndex* = object
+    repoUrl*: string
+    indexFile*: string
+    isParrotRepo*: bool
+    hasUpdate*: bool
+    indexFileErr*: bool
+    runtimeErr*: bool
+    arch*: string
+  UpdateStatus* = object
+    parrotUpdate*: int
+    sideUpdate*: int
+    upgradable*: int
+    runtimeErr*: int
+    cacheErr*: int
   NeedUpgrade* = object
     pkgList*: string
     pkgCount*: int
+
+var userChoice*: bool
+
 
 iterator readTextLines(data: string): string =
   var txt: string
@@ -18,30 +35,42 @@ iterator readTextLines(data: string): string =
       txt = ""
 
 
-proc fileNameToURL*(fileName: string): string =
+proc getIsDesktop*(): bool =
+  if isEmptyOrWhitespace(getEnv("XDG_CURRENT_DESKTOP")):
+    return false
+  return true
+
+
+proc getDebArch*(): string =
   #[
-    Convert index file name to URL of Repo
-    For example: vietnam.deb.parrot.sh_parrot_dists_rolling-testing_InRelease
-    -> 
+    Execute command `dpkg-architecture -l`
+    Parse section DEB_HOST_ARCH= and return
   ]#
-  return "https://" & fileName.split("/")[^1].replace("_", "/")
+  let
+    cmd = "dpkg-architecture -l"
+    output = execProcess(cmd)
+  for line in readTextLines(output):
+    if line.startsWith("DEB_HOST_ARCH"):
+      return line.split("=")[1]
 
 
-proc urlToIndexFile*(url, distribution: string): string =
+proc getUpgradeablePackages*(): NeedUpgrade =
   #[
-    Convert URL in source list to file name that will be saved at $localRepoIndex
-    Return release file that was saved in system
+    Get all packages that wasn't upgraded by apt
   ]#
-
-  return url.split("://")[1].replace("/", "_") & "_dists_" & distribution & "_InRelease"
-
-
-proc urlToRepoURL*(url, distribution: string): string =
-  #[
-    Convert URL in source list repo URL
-    Return full URL that contains Release file
-  ]#
-  return url & "/dists/" & distribution & "/InRelease"
+  let
+    cmd = "apt list --upgradeable"
+    output = execProcess(cmd)
+  var
+    count = 0
+    pkg = ""
+  for line in readTextLines(output):
+    if "/" in line:
+      count += 1
+      pkg &= line & "\n"
+  
+  result.pkgList = pkg
+  result.pkgCount = count
 
 
 proc parseDateFromFile*(filePath: string): string =
@@ -62,20 +91,96 @@ proc parseDateFromText*(data: string): string =
       return line
 
 
-proc getUpgradeablePackages*(): NeedUpgrade =
+proc aptSourceToURL*(repo: var RepoIndex, line: string) =
   #[
-    Get all packages that wasn't upgraded by apt
+    Convert source in apt to URL on repository
+    Return full URL that contains InRelease file
+    Example: deb https://vietnam.deb.parrot.sh/parrot rolling-testing main contrib non-free
+    Return: https://vietnam.deb.parrot.sh/parrot/dists/rolling-testing/InRelease
+    deb https://download.sublimetext.com/ apt/stable/
+    -> https://download.sublimetext.com/apt/stable/InRelease
+    deb https://download.sysdig.com/stable/deb stable-$(ARCH)/
+    -> https://download.sysdig.com/stable/deb/stable-amd64/InRelease
   ]#
-  let
-    cmd = "apt list --upgradeable"
-    output = execProcess(cmd)
-  var
-    count = 0
-    pkg = ""
-  for line in readTextLines(output):
-    if "/" in line:
-      count += 1
-      pkg &= line & "\n"
+  let splitedLine = line.split(" ")
+  #[
+    if line has no [arch]:
+      splitedLine[2] = URL
+      splitedLine[3] = branch
+      splitedLine[4 .. ^] = components
+  ]#
+  var startPos = 1
+  if "[" in line:
+    startPos = 2
   
-  result.pkgList = pkg
-  result.pkgCount = count
+  if splitedLine[startPos].endsWith("/parrot"):
+    repo.isParrotRepo = true
+    # return splitedLine[startPos] & "/dists/" & splitedLine[startPos + 1] & "/InRelease"
+    repo.repoUrl = splitedLine[startPos] & "/dists/" & splitedLine[startPos + 1] & "/InRelease"
+  else:
+    repo.repoUrl = splitedLine[startPos]
+    if not repo.repoUrl.endsWith("/"):
+      repo.repoUrl &= "/"
+    repo.repoUrl &= splitedLine[startPos + 1] & "InRelease"
+    if "$(ARCH)" in repo.repoUrl:
+      repo.repoUrl = repo.repoUrl.replace("$(ARCH)", repo.arch)
+
+
+# doAssert aptSourceToURL("deb https://vietnam.deb.parrot.sh/parrot rolling-testing main contrib non-free") == "https://vietnam.deb.parrot.sh/parrot/dists/rolling-testing/InRelease"
+# doAssert aptSourceToURL("deb https://download.sublimetext.com/ apt/stable/") == "https://download.sublimetext.com/apt/stable/InRelease"
+# doAssert aptSourceToURL("deb https://download.sysdig.com/stable/deb stable-$(ARCH)/") == "https://download.sysdig.com/stable/deb/stable-amd64/InRelease"
+
+proc aptSourceToFile*(repo: var RepoIndex, line: string) =
+  #[
+    Convert source in apt to file name in /var/lib/apt/lists
+    Return full absolute path of the file
+    Example: deb https://vietnam.deb.parrot.sh/parrot rolling-testing main contrib non-free
+    Return: /var/lib/apt/lists/vietnam.deb.parrot.sh_parrot_dists_rolling-testing_InRelease
+    deb https://download.sublimetext.com/ apt/stable/
+    -> /var/lib/apt/lists/download.sublimetext.com_apt_stable_InRelease
+    deb https://download.sysdig.com/stable/deb stable-$(ARCH)/
+    -> /var/lib/apt/lists/download.sysdig.com_stable_deb_stable-amd64_InRelease
+    # FIXME teamviewer has dist
+  ]#
+  let splitedLine = line.split(" ")
+  #[
+    if line has no [arch]:
+      splitedLine[2] = URL
+      splitedLine[3] = branch
+      splitedLine[4 .. ^] = components
+  ]#
+  var startPos = 1
+  if "[" in line:
+    startPos = 2
+  
+  repo.indexFile = splitedLine[startPos].split("://")[1].replace("/", "_")
+  if repo.indexFile.endsWith("_parrot"):
+    repo.isParrotRepo = true
+    repo.indexFile &= "_dists_" & splitedLine[startPos + 1] & "_InRelease"
+  else:  
+    if not repo.indexFile.endsWith("_"):
+      repo.indexFile &= "_"
+    repo.indexFile &= splitedLine[startPos + 1].replace("/", "_")
+    if not repo.indexFile.endsWith("_"):
+      repo.indexFile &= "_InRelease"
+    else:
+      repo.indexFile &= "InRelease"
+  
+  if "$(ARCH)" in repo.indexFile:
+    repo.indexFile = repo.indexFile.replace("$(ARCH)", repo.arch)
+
+  repo.indexFile = "/var/lib/apt/lists/" & repo.indexFile
+
+  if not fileExists(repo.indexFile):
+    echo "File not found ", repo.indexFile
+    repo.indexFileErr = true
+  else:
+    # echo "Using repo file ", repo.indexFile
+    repo.indexFileErr = false
+  
+
+# doAssert aptSourceToFile("deb https://vietnam.deb.parrot.sh/parrot rolling-testing main contrib non-free") == "/var/lib/apt/lists/vietnam.deb.parrot.sh_parrot_dists_rolling-testing_InRelease"
+# doAssert aptSourceToFile("deb https://download.sublimetext.com/ apt/stable/") == "/var/lib/apt/lists/download.sublimetext.com_apt_stable_InRelease"
+# doAssert aptSourceToFile("deb https://download.sysdig.com/stable/deb stable-$(ARCH)/") == "/var/lib/apt/lists/download.sysdig.com_stable_deb_stable-amd64_InRelease"
+
+let isDesktop* = getIsDesktop()
