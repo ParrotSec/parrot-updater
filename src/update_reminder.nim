@@ -43,33 +43,35 @@ proc handleNotify(title, msg: string, lvl = 0) =
       sendNotify(title, msg, "security-low")
 
 
-proc checkUpdate*(): int =
+proc checkUpdate*(): UpdateAction =
   let updateResult = do_check_source_list()
   if updateResult.parrotOutdated > 0:
     handleNotify("New updates are available", "Parrot OS has new update", 2)
-    return 1
+    return ActionUpgrade
   elif updateResult.parrotFileErr > 0:
     handleNotify("Your system needs upgrading", "No index files found", 2)
-    return 1
+    return ActionUpgrade
   elif updateResult.parrotRuntimeErr > 0:
     handleNotify("Error while checking update", "Runtime error", 2)
-    return 1
+    return ActionUpgrade
   elif updateResult.sideOutdated > 0:
     handleNotify("New updates are available", intToStr(updateResult.sideOutdated) & " updates from 3rd-party repositories", 1)
-    return 1
+    return ActionUpgrade
   elif updateResult.parrotBranches == 0:
     handleNotify("Source list error", "Missing Parrot repository", 2)
-    return 0 # Do not prompt upgrade when repo is missing
+    return ActionAbort # Do not prompt upgrade when repo is missing
   # Skip missing index files for 3rd party repos. URL might not supported
   elif updateResult.sideRuntimeErr > 0:
     handleNotify("Error while checking update", "Runtime error", 1)
-    return 1
+    return ActionUpgrade
   else:
     countUpgrade = getUpgradeablePackages()
     if countUpgrade.pkgCount > 0:
       handleNotify("Upgrades are required", intToStr(countUpgrade.pkgCount) & " package[s] are not upgraded", 1)
+      return ActionUpgrade
     else:
       handleNotify("Your system is up to date", "", 0)
+      return ActionAbort
 
 
 proc onExit(w: Window) =
@@ -248,8 +250,7 @@ proc startUpdate(w: Window) =
   updateDialog.destroy()
   if userChoice:
     userChoice = false
-    let updateResult = checkUpdate()
-    if updateResult != 0:
+    if checkUpdate() == ActionUpgrade:
       askUpgradePopup()
 
 
@@ -277,13 +278,11 @@ proc gtkUpdateCheck() =
     #   startUpgrade()
     elif paramStr(1) == "--auto":
       # Skip asking user and do update based on result
-      let updateResult = checkUpdate()
-      if updateResult != 0:
+      if checkUpdate() == ActionUpgrade:
         startUpgrade()
     elif paramStr(1) == "--fast":
       # Skip ask user for check update.
-      let updateResult = checkUpdate()
-      if updateResult != 0:
+      if checkUpdate() == ActionUpgrade:
         askUpgradePopup()
     elif paramStr(1) == "scheduled":
       # Ask user before start apt
@@ -296,6 +295,5 @@ proc gtkUpdateCheck() =
 if isDesktop:
   gtkUpdateCheck()
 else:
-  let updateResult = checkUpdate()
-  if updateResult != 0:
+  if checkUpdate() == ActionUpgrade:
     startUpgrade()

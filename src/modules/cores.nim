@@ -27,6 +27,8 @@ type
   HTTPData* = object
     isErr*: bool
     body*: string
+  UpdateAction* = enum
+    ActionAbort, ActionUpgrade
 
 var userChoice*: bool
 
