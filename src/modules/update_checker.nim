@@ -54,16 +54,20 @@ proc get_source_status(pkgStatus: var UpdateStatus, sourcePath, debArch: string)
   for line in lines(sourcePath):
     if line.startsWith("deb "):
       let repoInfo = doCheckUpdateForLines(line, debArch)
-      if repoInfo.indexFileErr:
-        pkgStatus.cacheErr += 1
-      elif repoInfo.runtimeErr:
-        pkgStatus.runtimeErr += 1
-      elif repoInfo.isParrotRepo == true:
+      if repoInfo.isParrotRepo:
         if repoInfo.hasUpdate:
-          pkgStatus.parrotUpdate += 1
+          pkgStatus.parrotOutdated += 1
+        elif repoInfo.runtimeErr:
+          pkgStatus.parrotRuntimeErr += 1
+        elif repoInfo.indexFileErr:
+          pkgStatus.parrotFileErr += 1
       else:
         if repoInfo.hasUpdate:
-          pkgStatus.sideUpdate += 1
+          pkgStatus.sideOutdated += 1
+        elif repoInfo.runtimeErr:
+          pkgStatus.sideRuntimeErr += 1
+        elif repoInfo.indexFileErr:
+          pkgStatus.sideFileErr += 1
 
 
 proc do_check_source_list*(): UpdateStatus =
@@ -74,14 +78,14 @@ proc do_check_source_list*(): UpdateStatus =
     debArch = getDebArch()
   var
     updateStatus = UpdateStatus(
-      parrotUpdate: 0,
-      sideUpdate: 0,
+      parrotOutdated: 0,
+      parrotRuntimeErr: 0,
+      parrotFileErr: 0,
+      sideOutdated: 0,
+      sideRuntimeErr: 0,
+      sideFileErr: 0,
       upgradable: 0,
-      runtimeErr: 0,
-      cacheErr: 0,
     )
-  # TODO when user change repository, there are index files are not downloaded
-  # however, the result still shows up to date. Think about this
 
   get_source_status(updateStatus, sourceListFile, debArch)
 

@@ -13,11 +13,13 @@ type
     runtimeErr*: bool
     arch*: string
   UpdateStatus* = object
-    parrotUpdate*: int
-    sideUpdate*: int
+    parrotOutdated*: int
+    parrotRuntimeErr*: int
+    parrotFileErr*: int
+    sideOutdated*: int
+    sideRuntimeErr*: int
+    sideFileErr*: int
     upgradable*: int
-    runtimeErr*: int
-    cacheErr*: int
   NeedUpgrade* = object
     pkgList*: string
     pkgCount*: int
