@@ -39,8 +39,9 @@ proc doCheckUpdateForLines(line, arch: string): RepoIndex =
 
     if parseDateFromFile(sourceInfo.indexFile) != parseDateFromText(checkRepoUpdate.body):
       sourceInfo.hasUpdate = true
+      echo "[!] New update is available ", sourceInfo.repoUrl
     else:
-      echo "Up to date ", sourceInfo.repoUrl
+      echo "[*] Up to date ", sourceInfo.repoUrl
       sourceInfo.hasUpdate = false
     return sourceInfo
   except:
