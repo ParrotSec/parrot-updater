@@ -59,7 +59,7 @@ proc checkUpdate*(): int =
     return 1
   elif updateResult.parrotBranches == 0:
     handleNotify("Source list error", "Missing Parrot repository", 2)
-    return 1
+    return 0 # Do not prompt upgrade when repo is missing
   # Skip missing index files for 3rd party repos. URL might not supported
   elif updateResult.sideRuntimeErr > 0:
     handleNotify("Error while checking update", "Runtime error", 1)
