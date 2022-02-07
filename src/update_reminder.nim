@@ -46,20 +46,20 @@ proc handleNotify(title, msg: string, lvl = 0) =
 proc checkUpdate*(): int =
   let updateResult = do_check_source_list()
   if updateResult.parrotOutdated > 0:
-    handleNotify("New updates are available", "Parrot OS has new update" , 2)
+    handleNotify("New updates are available", "Parrot OS has new update", 2)
     return 1
   elif updateResult.parrotFileErr > 0:
-    handleNotify("Your system needs upgrading", "No index files found" , 2)
+    handleNotify("Your system needs upgrading", "No index files found", 2)
     return 1
   elif updateResult.parrotRuntimeErr > 0:
-    handleNotify("Error while checking update", "Runtime error" , 2)
+    handleNotify("Error while checking update", "Runtime error", 2)
     return 1
   elif updateResult.sideOutdated > 0:
-    handleNotify("New updates are available", intToStr(updateResult.sideOutdated) & " updates from 3rd-party repositories" , 1)
+    handleNotify("New updates are available", intToStr(updateResult.sideOutdated) & " updates from 3rd-party repositories", 1)
     return 1
   # Skip missing index files for 3rd party repos. URL might not supported
   elif updateResult.sideRuntimeErr > 0:
-    handleNotify("Error while checking update", "Runtime error" , 1)
+    handleNotify("Error while checking update", "Runtime error", 1)
     return 1
   else:
     countUpgrade = getUpgradeablePackages()
