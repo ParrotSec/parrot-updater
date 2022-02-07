@@ -55,6 +55,7 @@ proc get_source_status(pkgStatus: var UpdateStatus, sourcePath, debArch: string)
     if line.startsWith("deb "):
       let repoInfo = doCheckUpdateForLines(line, debArch)
       if repoInfo.isParrotRepo:
+        pkgStatus.parrotBranches += 1
         if repoInfo.hasUpdate:
           pkgStatus.parrotOutdated += 1
         elif repoInfo.runtimeErr:
@@ -85,6 +86,7 @@ proc do_check_source_list*(): UpdateStatus =
       sideRuntimeErr: 0,
       sideFileErr: 0,
       upgradable: 0,
+      parrotBranches: 0,
     )
 
   get_source_status(updateStatus, sourceListFile, debArch)

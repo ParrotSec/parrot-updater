@@ -16,6 +16,7 @@ type
     parrotOutdated*: int
     parrotRuntimeErr*: int
     parrotFileErr*: int
+    parrotBranches*: int
     sideOutdated*: int
     sideRuntimeErr*: int
     sideFileErr*: int

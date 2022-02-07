@@ -57,6 +57,9 @@ proc checkUpdate*(): int =
   elif updateResult.sideOutdated > 0:
     handleNotify("New updates are available", intToStr(updateResult.sideOutdated) & " updates from 3rd-party repositories", 1)
     return 1
+  elif updateResult.parrotBranches == 0:
+    handleNotify("Source list error", "Missing Parrot repository", 2)
+    return 1
   # Skip missing index files for 3rd party repos. URL might not supported
   elif updateResult.sideRuntimeErr > 0:
     handleNotify("Error while checking update", "Runtime error", 1)
