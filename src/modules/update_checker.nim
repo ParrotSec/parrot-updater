@@ -13,7 +13,7 @@ proc getHTTPData*(url: string): HTTPData =
     statusCheck: HTTPData
   let
     resp = client.get(url)
-  echo resp.status, " ", url
+  echo "[-] ", resp.status, " ", url
   if not resp.status.startsWith("200 OK"):
     statusCheck.isErr = true
   else:

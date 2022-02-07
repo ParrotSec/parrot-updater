@@ -187,10 +187,10 @@ proc aptSourceToFile*(repo: var RepoIndex, line: string) =
   repo.indexFile = "/var/lib/apt/lists/" & repo.indexFile
 
   if not fileExists(repo.indexFile):
-    echo "File not found ", repo.indexFile
+    echo "[x] File not found ", repo.indexFile
     repo.indexFileErr = true
   else:
-    echo "Found ", repo.indexFile
+    echo "[-] Found ", repo.indexFile
     repo.indexFileErr = false
   
 
