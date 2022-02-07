@@ -60,6 +60,8 @@ proc getDebArch*(): string =
 proc getUpgradeablePackages*(): NeedUpgrade =
   #[
     Get all packages that wasn't upgraded by apt
+    # TODO this command is slow and uses a lot of memory (74 mb)
+    Try better code
   ]#
   let
     cmd = "apt list --upgradeable"
