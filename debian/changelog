@@ -1,3 +1,9 @@
+parrot-updater (1.1) lory; urgency=medium
+
+  * Rebuild package to bump version.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 08 May 2024 19:09:08 +0200
+
 parrot-updater (1.0) lory; urgency=medium
 
   * Use pkexec for authentication.
