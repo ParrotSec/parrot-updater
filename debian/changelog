@@ -1,3 +1,9 @@
+parrot-updater (1.2) lory; urgency=medium
+
+  * fix pkexec starter line.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 08 May 2024 19:34:50 +0200
+
 parrot-updater (1.1) lory; urgency=medium
 
   * Rebuild package to bump version.

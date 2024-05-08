@@ -17,13 +17,13 @@ function update_notify_counter() {
 
 
 function send_notify() {
-	notify-send -t 5000 -a "Parrot Updater" -i /usr/share/icons/parrot-logo-100.png "Parrot Updater" "<b>Update</b> your system to apply the latest security updates and import the latest features"
+	notify-send -t 5000 -a "Parrot Updater" -i /usr/share/icons/parrot-logo.png "Parrot Updater" "<b>Update</b> your system to apply the latest security updates and import the latest features"
 }
 
 
 function notify_reminder() {
 	zenity --question --text="Do you want to check for updates?" && \
-	pkexec -- x-terminal-emulator -e "bash -c 'parrot-upgrade||parrot-upgrade'" | zenity --progress --pulsate --auto-close --auto-kill --text="Installing updates" && \
+	x-terminal-emulator -e "pkexec bash -c 'parrot-upgrade||parrot-upgrade;echo press enter to close;read'" | zenity --progress --pulsate --auto-close --auto-kill --text="Installing updates" && \
 	zenity --info "Upgrade completed" && update_notify_counter
 }
 
