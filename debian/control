@@ -1,22 +1,18 @@
 Source: parrot-updater
-Section: admin
+Section: parrot
 Priority: optional
 Maintainer: Parrot Team <parrot-devel@lists.parrotsec.org>
 Uploaders: Lorenzo "Palinuro" Faletra <palinuro@frozenbox.org>,
-           Irene "Tissy" Pirrotta <tissy@parrotsec.org>
-           Nong Hoang "DmKnght" Tu <dmknght@parrotsec.org>
-Standards-Version: 4.5.1
-Build-Depends: debhelper-compat (=12), nim, libnim-gintro-dev
+Standards-Version: 3.9.8
+Build-Depends: debhelper (>= 9)
 Build-Depends-Indep: pkg-config
 Homepage: http://www.parrotsec.org/
-Rules-Requires-Root: no
 
 Package: parrot-updater
-Architecture: any
+Architecture: all
 Priority: optional
-Depends: libc6
-Replaces: apt-parrot (<< 2.18)
-Description: A fast update checker for Parrot OS
+Depends: bash, zenity, libnotify-bin, bc, parrot-core
+Description: Parrot Updater
  Parrot Updater is a set of graphical tools
  to handle system updates and to show
  periodical update reminders.

@@ -3,5 +3,11 @@ all:
 clean:
 
 install:
-	mkdir -p bin/
-	nim c --nimcache:/tmp --out:bin/update-reminder -d:release src/update_reminder.nim
+	mkdir -p $(DESTDIR)/usr/bin/
+	mkdir -p $(DESTDIR)/usr/share/applications/
+	mkdir -p $(DESTDIR)/etc/xdg/autostart/
+	cp update-reminder.sh $(DESTDIR)/usr/bin/update-reminder
+	cp parrot-updater.desktop $(DESTDIR)/etc/xdg/autostart/
+	chown root:root $(DESTDIR)/usr/bin/update-reminder
+	chown root:root $(DESTDIR)/etc/xdg/autostart/parrot-updater.desktop
+	chmod 755 $(DESTDIR)/etc/xdg/autostart/parrot-updater.desktop
