@@ -23,7 +23,7 @@ function send_notify() {
 
 function notify_reminder() {
 	zenity --question --text="Do you want to check for updates?" && \
-	x-terminal-emulator -e "pkexec bash -c 'parrot-upgrade||parrot-upgrade;echo press enter to close;read'" | zenity --progress --pulsate --auto-close --auto-kill --text="Installing updates" && \
+	mate-terminal -e "pkexec bash -c 'parrot-upgrade||parrot-upgrade;echo press enter to close;read'" | zenity --progress --pulsate --auto-close --auto-kill --text="Installing updates" && \
 	zenity --info "Upgrade completed" && update_notify_counter
 }
 
