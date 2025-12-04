@@ -1,3 +1,9 @@
+parrot-updater (1.5) echo; urgency=medium
+
+  * Check new squashfs location to detect live mode.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 04 Dec 2025 09:26:09 +0100
+
 parrot-updater (1.4) echo; urgency=medium
 
   * Switch to x-terminal-emulator

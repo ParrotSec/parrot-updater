@@ -28,7 +28,7 @@ function notify_reminder() {
 
 
 function start_scheduled() {
-	if [ -d /lib/live/mount/rootfs/filesystem.squashfs ]; then
+	if [ -d /run/live/rootfs/filesystem.squashfs ]; then
 		exit 0
 	else
 		if [ -f ~/.last-updated ]; then
