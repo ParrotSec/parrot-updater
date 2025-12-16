@@ -1,0 +1,12 @@
+[package]
+name = "parrot-updater"
+version = "2.0.0"
+edition = "2024"
+authors = ["Dario 'danterolle' Camonita"]
+
+[dependencies]
+gtk4 = "0.10.3"
+chrono = "0.4"
+notify-rust = { version = "4", features = ["d"] }
+async-channel = "2.5.0"
+glib = "0.21.5"
