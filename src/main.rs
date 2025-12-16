@@ -1,3 +1,10 @@
+/*
+ * This is a Rust implementation of the old Parrot Updater script.
+ * We use GTK 4 for managing the GUI.
+ *
+ * Libraries needed to compile the project: libgtk-4-dev libdbus-1-dev pkg-config
+*/
+
 use chrono::{DateTime, Duration, Utc};
 use gtk4::prelude::*;
 use gtk4::{Application, ApplicationWindow, Box, Button, Label, Orientation, ProgressBar, ScrolledWindow, TextView};
