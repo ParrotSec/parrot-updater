@@ -9,7 +9,6 @@ use chrono::{DateTime, Duration, Utc};
 use gtk4::prelude::*;
 use gtk4::{Application, ApplicationWindow, Box, Button, Label, Orientation, ProgressBar, ScrolledWindow, TextView};
 use gtk4::glib;
-use notify_rust::{Notification, Timeout};
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
@@ -67,13 +66,37 @@ fn run_scheduled() {
     if should_run {
         let _ = fs::write(&path, Utc::now().to_rfc3339());
 
-        let _ = Notification::new()
-            .summary("Parrot Updater")
-            .body("A new update is available.")
-            .icon(ICON)
-            .appname("Parrot Updater")
-            .timeout(Timeout::Never)
-            .show();
+        // Use a headless GTK Application to handle the notification lifecycle
+        // This replaces notify-rust's deprecated blocking calls.
+        let app = Application::builder()
+            .application_id("org.parrotsec.parrot-updater.scheduled")
+            .flags(gio::ApplicationFlags::FLAGS_NONE)
+            .build();
+
+        app.connect_activate(|app| {
+            let notification = gio::Notification::new("Parrot Updater");
+            notification.set_body(Some("A new update is available."));
+
+            let icon_file = gio::File::for_path(ICON);
+            let icon = gio::FileIcon::new(&icon_file);
+            notification.set_icon(&icon);
+            notification.add_button("Update Now", "app.open-gui");
+
+            app.send_notification(Some("updater-notification"), &notification);
+        });
+
+        let action = gio::SimpleAction::new("open-gui", None);
+        action.connect_activate(|_, _| {
+            if let Ok(exe) = std::env::current_exe() {
+                let _ = Command::new(exe)
+                    .arg("gui")
+                    .spawn();
+            }
+            std::process::exit(0);
+        });
+
+        app.add_action(&action);
+        app.run_with_args(&Vec::<String>::new());
     } else {
         println!("No updates needed.");
     }
