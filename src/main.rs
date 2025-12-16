@@ -93,13 +93,14 @@ fn run_scheduled() {
         });
 
         let action = gio::SimpleAction::new("open-gui", None);
-        action.connect_activate(|_, _| {
+        let app_clone = app.clone();
+        action.connect_activate(move |_, _| {
             if let Ok(exe) = std::env::current_exe() {
                 let _ = Command::new(exe)
                     .arg("gui")
                     .spawn();
             }
-            std::process::exit(0);
+            app_clone.quit();
         });
 
         app.add_action(&action);
