@@ -70,10 +70,11 @@ fn run_scheduled() {
         // This replaces notify-rust's deprecated blocking calls.
         let app = Application::builder()
             .application_id("org.parrotsec.parrot-updater.scheduled")
-            .flags(gio::ApplicationFlags::FLAGS_NONE)
             .build();
 
         app.connect_activate(|app| {
+            let _hold = app.hold();
+
             let notification = gio::Notification::new("Parrot Updater");
             notification.set_body(Some("A new update is available."));
 
@@ -83,6 +84,12 @@ fn run_scheduled() {
             notification.add_button("Update Now", "app.open-gui");
 
             app.send_notification(Some("updater-notification"), &notification);
+
+            let app_clone = app.clone();
+            glib::timeout_add_seconds_local(300, move || {
+                app_clone.quit();
+                glib::ControlFlow::Break
+            });
         });
 
         let action = gio::SimpleAction::new("open-gui", None);
