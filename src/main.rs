@@ -165,10 +165,8 @@ fn build_ui(app: &Application) {
                 Ok(mut child_proc) => {
                     if let Some(stdout) = child_proc.stdout.take() {
                         let reader = BufReader::new(stdout);
-                        for line in reader.lines() {
-                            if let Ok(l) = line {
-                                let _ = sender.try_send(UpdateMsg::Log(l));
-                            }
+                        for line in reader.lines().filter_map(Result::ok) {
+                                let _ = sender.try_send(UpdateMsg::Log(line));
                         }
                     }
 
