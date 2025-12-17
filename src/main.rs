@@ -14,6 +14,7 @@ use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::thread;
+use notify_rust::{Notification, Timeout};
 
 const UPDATE_INTERVAL_MINUTES: i64 = 1;
 const LAST_UPDATE_FILE: &str = ".last-updated";
@@ -66,45 +67,34 @@ fn run_scheduled() {
     if should_run {
         let _ = fs::write(&path, Utc::now().to_rfc3339());
 
-        // Use a headless GTK Application to handle the notification lifecycle
-        // This replaces notify-rust's deprecated blocking calls.
-        let app = Application::builder()
-            .application_id("org.parrotsec.parrot-updater.scheduled")
-            .build();
+        let notification_result = Notification::new()
+            .summary("Parrot Updater")
+            .body("A new update is available.")
+            .icon(ICON)
+            .timeout(Timeout::Milliseconds(300_000)) // 5 mins?
+            .action("open_gui", "Update Now")
+            .show();
 
-        app.connect_activate(|app| {
-            let _hold = app.hold();
-
-            let notification = gio::Notification::new("Parrot Updater");
-            notification.set_body(Some("A new update is available."));
-
-            let icon_file = gio::File::for_path(ICON);
-            let icon = gio::FileIcon::new(&icon_file);
-            notification.set_icon(&icon);
-            notification.add_button("Update Now", "app.open-gui");
-
-            app.send_notification(Some("updater-notification"), &notification);
-
-            let app_clone = app.clone();
-            glib::timeout_add_seconds_local(300, move || {
-                app_clone.quit();
-                glib::ControlFlow::Break
-            });
-        });
-
-        let action = gio::SimpleAction::new("open-gui", None);
-        let app_clone = app.clone();
-        action.connect_activate(move |_, _| {
-            if let Ok(exe) = std::env::current_exe() {
-                let _ = Command::new(exe)
-                    .arg("gui")
-                    .spawn();
+        match notification_result {
+            Ok(handle) => {
+                #[cfg(target_os = "linux")]
+                handle.wait_for_action(|action| {
+                    if action == "open_gui" {
+                        if let Ok(exe) = std::env::current_exe() {
+                            let _ = Command::new(exe)
+                                .arg("gui")
+                                .spawn();
+                        }
+                    }
+                });
+                #[cfg(not(target_os = "linux"))]
+                println!("This is a placeholder for other operating systems.");
+            },
+            Err(e) => {
+                eprintln!("Failed to send notification: {}", e);
             }
-            app_clone.quit();
-        });
+        }
 
-        app.add_action(&action);
-        app.run_with_args(&Vec::<String>::new());
     } else {
         println!("No updates needed.");
     }
