@@ -16,7 +16,6 @@ use std::process::{Command, Stdio};
 use std::thread;
 use notify_rust::{Notification, Timeout};
 
-const UPDATE_INTERVAL_MINUTES: i64 = 1;
 const LAST_UPDATE_FILE: &str = ".last-updated";
 const ICON: &str = "/usr/share/icons/parrot-logo.png";
 
@@ -53,7 +52,7 @@ fn run_scheduled() {
             if let Ok(modified) = metadata.modified() {
                 let modified_dt: DateTime<Utc> = modified.into();
                 let now = Utc::now();
-                (now - modified_dt) > Duration::minutes(UPDATE_INTERVAL_MINUTES)
+                (now - modified_dt) > Duration::weeks(1)
             } else {
                 true
             }
@@ -103,7 +102,7 @@ fn run_scheduled() {
         if let Ok(metadata) = fs::metadata(&path) {
             if let Ok(modified) = metadata.modified() {
                 let last_run: DateTime<Utc> = modified.into();
-                let next_run = last_run + Duration::minutes(UPDATE_INTERVAL_MINUTES);
+                let next_run = last_run + Duration::weeks(1);
                 let now = Utc::now();
 
                 let remaining = next_run - now;
