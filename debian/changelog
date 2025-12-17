@@ -1,3 +1,30 @@
+parrot-updater (2.0) echo; urgency=medium
+
+  [ Dario Camonita ]
+  * feat: first rust implementation
+  * docs: add libs to install for compiling
+  * refactor: handle stdout iteration with filter_map(Result::ok)
+  * feat: replace deprecated notification logic (motify-rust) with GIO actions
+  * fix: correct ApplicationHoldGuard usage in scheduled mode
+  * fix: prevent GUI from being killed when notification is clicked
+  * feat: use notify-rust instead of gio for dbus notifications
+  * feat: update desktop entry
+  * chore: set icon for parrot-updater.desktop
+  * feat: add dynamic countdown formatting for next update check
+  * feat: close main window when acknowledging successful update
+  * fix: detach spawned GUI process from parent stdio
+  * feat: use Duration::weeks() instead of minutes
+  * feat: add utils.rs for utilities
+  * feat: add updater.rs
+  * feat: move scheduling and gui to separate files
+  * feat: add std::process::{Command, Stdio}
+  * feat: add About dialog with project metadata and contact info
+  * feat: add logo for About dialog
+  * feat: update debian files
+  * feat: add vcs info in d/control
+
+ -- Dario "danterolle" Camonita <danterolle@parrotsec.org>  Wed, 17 Dec 2025 20:49:42 +0000
+
 parrot-updater (1.5) echo; urgency=medium
 
   * Check new squashfs location to detect live mode.
