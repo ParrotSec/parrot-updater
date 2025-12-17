@@ -5,6 +5,7 @@
  * Libraries needed to compile the project: libgtk-4-dev libdbus-1-dev pkg-config
 */
 mod utils;
+mod updater;
 
 use chrono::{DateTime, Duration, Utc};
 use gtk4::prelude::*;
@@ -15,11 +16,6 @@ use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
 use std::thread;
 use notify_rust::{Notification, Timeout};
-
-enum UpdateMsg {
-    Log(String),
-    Finished(bool)
-}
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -188,7 +184,7 @@ fn build_ui(app: &Application) {
         lbl_status.set_label("Updating...");
         buffer.set_text("");
 
-        let (sender, receiver) = async_channel::unbounded::<UpdateMsg>();
+        let (sender, receiver) = async_channel::unbounded::<updater::UpdateMsg>();
 
         thread::spawn(move || {
             let cmd_str = "pkexec env DEBIAN_FRONTEND=noninteractive parrot-upgrade -y";
@@ -205,24 +201,24 @@ fn build_ui(app: &Application) {
                     if let Some(stdout) = child_proc.stdout.take() {
                         let reader = BufReader::new(stdout);
                         for line in reader.lines().filter_map(Result::ok) {
-                                let _ = sender.try_send(UpdateMsg::Log(line));
+                                let _ = sender.try_send(updater::UpdateMsg::Log(line));
                         }
                     }
 
                     let status = child_proc.wait();
                     match status {
                         Ok(s) => {
-                            let _ = sender.try_send(UpdateMsg::Finished(s.success()));
+                            let _ = sender.try_send(updater::UpdateMsg::Finished(s.success()));
                         }
                         Err(e) => {
-                            let _ = sender.try_send(UpdateMsg::Log(format!("Process error: {}", e)));
-                            let _ = sender.try_send(UpdateMsg::Finished(false));
+                            let _ = sender.try_send(updater::UpdateMsg::Log(format!("Process error: {}", e)));
+                            let _ = sender.try_send(updater::UpdateMsg::Finished(false));
                         }
                     }
                 }
                 Err(e) => {
-                    let _ = sender.try_send(UpdateMsg::Log(format!("Failed to start process: {}", e)));
-                    let _ = sender.try_send(UpdateMsg::Finished(false));
+                    let _ = sender.try_send(updater::UpdateMsg::Log(format!("Failed to start process: {}", e)));
+                    let _ = sender.try_send(updater::UpdateMsg::Finished(false));
                 }
             }
         });
@@ -242,7 +238,7 @@ fn build_ui(app: &Application) {
         glib::timeout_add_local(std::time::Duration::from_millis(50), move || {
             while let Ok(msg) = receiver.try_recv() {
                 match msg {
-                    UpdateMsg::Log(text) => {
+                    updater::UpdateMsg::Log(text) => {
                         let clean_text = text.replace("\x1b", "");
                         let mut iter = buffer_clone.end_iter();
                         buffer_clone.insert(&mut iter, &format!("{}\n", clean_text));
@@ -251,7 +247,7 @@ fn build_ui(app: &Application) {
                         text_view_clone.scroll_to_mark(&mark, 0.0, true, 0.0, 1.0);
                         progress_clone.pulse();
                     }
-                    UpdateMsg::Finished(success) => {
+                    updater::UpdateMsg::Finished(success) => {
                         progress_clone.set_visible(false);
 
                         if success {
