@@ -4,6 +4,7 @@ use gtk4::glib;
 use std::fs;
 use std::thread;
 use chrono::Utc;
+use crate::utils::{VERSION, AUTHOR, PROJECT_URL};
 
 use crate::updater::{UpdateMsg, run_upgrade_process};
 use crate::utils::get_timestamp_path;
@@ -37,19 +38,50 @@ fn build_ui(app: &Application) {
     }
 
     let vbox = Box::new(Orientation::Vertical, 10);
+    let hbox_btns = Box::new(Orientation::Horizontal, 10);
     set_margin_all(&vbox, 10);
 
     let lbl_status = Label::new(Some("Ready to update system"));
     let progress = ProgressBar::builder().visible(false).build();
     let text_view = TextView::builder().editable(false).monospace(true).build();
     let scrolled = ScrolledWindow::builder().child(&text_view).vexpand(true).build();
+
     let btn_start = Button::with_label("Start Update");
+    let btn_about = Button::builder()
+        .icon_name("help-about-symbolic")
+        .tooltip_text("About Parrot Updater")
+        .build();
+
+    hbox_btns.set_halign(gtk4::Align::Center);
+    hbox_btns.append(&btn_start);
+    hbox_btns.append(&btn_about);
 
     vbox.append(&lbl_status);
     vbox.append(&progress);
     vbox.append(&scrolled);
-    vbox.append(&btn_start);
+    vbox.append(&hbox_btns);
+
     window.set_child(Some(&vbox));
+
+    btn_about.connect_clicked({
+        let window = window.clone();
+        move |_| {
+            let about = gtk4::AboutDialog::builder()
+                .transient_for(&window)
+                .modal(true)
+                .program_name("Parrot Updater")
+                .version(VERSION)
+                .authors(vec![AUTHOR.to_string()])
+                .website(PROJECT_URL)
+                .website_label("Source Code")
+                .comments("The official system updater for ParrotOS.")
+                .copyright("© Parrot Security")
+                .license_type(gtk4::License::Gpl30)
+                .build();
+
+            about.show();
+        }
+    });
 
     btn_start.connect_clicked({
         let lbl_status = lbl_status.clone();

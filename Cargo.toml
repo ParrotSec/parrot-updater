@@ -2,7 +2,7 @@
 name = "parrot-updater"
 version = "2.0.0"
 edition = "2024"
-authors = ["Dario 'danterolle' Camonita"]
+authors = ["Dario 'danterolle' Camonita <danterolle@parrotsec.org>"]
 
 [dependencies]
 gtk4 = "0.10.3"
