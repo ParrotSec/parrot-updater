@@ -83,6 +83,9 @@ fn run_scheduled() {
                         if let Ok(exe) = std::env::current_exe() {
                             let _ = Command::new(exe)
                                 .arg("gui")
+                                .stdin(Stdio::null())
+                                .stdout(Stdio::null())
+                                .stderr(Stdio::null())
                                 .spawn();
                         }
                     }
