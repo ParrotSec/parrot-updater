@@ -94,8 +94,34 @@ fn run_scheduled() {
                 eprintln!("Failed to send notification: {}", e);
             }
         }
-
     } else {
+        let path = get_timestamp_path();
+
+        if let Ok(metadata) = fs::metadata(&path) {
+            if let Ok(modified) = metadata.modified() {
+                let last_run: DateTime<Utc> = modified.into();
+                let next_run = last_run + Duration::minutes(UPDATE_INTERVAL_MINUTES);
+                let now = Utc::now();
+
+                let remaining = next_run - now;
+
+                if remaining.num_seconds() > 0 {
+                    let days = remaining.num_days();
+                    let hours = remaining.num_hours() % 24;
+                    let mins = remaining.num_minutes() % 60;
+                    let secs = remaining.num_seconds() % 60;
+
+                    if days > 0 {
+                        println!("No updates needed. Next check in {}d {}h {}m.", days, hours, mins);
+                    } else if hours > 0 {
+                        println!("No updates needed. Next check in {}h {}m {}s.", hours, mins, secs);
+                    } else {
+                        println!("No updates needed. Next check in {}m {}s.", mins, secs);
+                    }
+                    return;
+                }
+            }
+        }
         println!("No updates needed.");
     }
 }
