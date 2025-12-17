@@ -4,6 +4,7 @@
  *
  * Libraries needed to compile the project: libgtk-4-dev libdbus-1-dev pkg-config
 */
+mod utils;
 
 use chrono::{DateTime, Duration, Utc};
 use gtk4::prelude::*;
@@ -11,13 +12,9 @@ use gtk4::{Application, ApplicationWindow, Box, Button, Label, Orientation, Prog
 use gtk4::glib;
 use std::fs;
 use std::io::{BufRead, BufReader};
-use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::thread;
 use notify_rust::{Notification, Timeout};
-
-const LAST_UPDATE_FILE: &str = ".last-updated";
-const ICON: &str = "/usr/share/icons/parrot-logo.png";
 
 enum UpdateMsg {
     Log(String),
@@ -34,18 +31,11 @@ fn main() {
     }
 }
 
-fn get_timestamp_path() -> PathBuf {
-    let home = std::env::var("HOME").expect("Could not find $HOME");
-    Path::new(&home).join(LAST_UPDATE_FILE)
-}
-
 fn run_scheduled() {
-    // Check if we in a Live environment.
-    if Path::new("/lib/live/mount/rootfs/filesystem.squashfs").exists() {
-        return;
-    }
 
-    let path = get_timestamp_path();
+    utils::is_live_environment();
+
+    let path = utils::get_timestamp_path();
 
     let should_run = if path.exists() {
         if let Ok(metadata) = fs::metadata(&path) {
@@ -69,7 +59,7 @@ fn run_scheduled() {
         let notification_result = Notification::new()
             .summary("Parrot Updater")
             .body("A new update is available.")
-            .icon(ICON)
+            .icon(utils::ICON)
             .timeout(Timeout::Milliseconds(300_000)) // 5 mins?
             .action("open_gui", "Update Now")
             .show();
@@ -97,7 +87,7 @@ fn run_scheduled() {
             }
         }
     } else {
-        let path = get_timestamp_path();
+        let path = utils::get_timestamp_path();
 
         if let Ok(metadata) = fs::metadata(&path) {
             if let Ok(modified) = metadata.modified() {
@@ -268,7 +258,7 @@ fn build_ui(app: &Application) {
                             lbl_status_clone.set_label("Update completed successfully!");
                             btn_start_clone2.set_label("Done");
 
-                            let path = get_timestamp_path();
+                            let path = utils::get_timestamp_path();
                             let _ = fs::write(&path, Utc::now().to_rfc3339());
 
                             let dlg = gtk4::MessageDialog::builder()
