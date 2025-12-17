@@ -11,6 +11,8 @@ Build-Depends: debhelper-compat (= 13),
                rustc,
                cargo
 Homepage: http://www.parrotsec.org/
+Vcs-Git: https://gitlab.com/parrotsec/packages/parrot-updater.git
+Vcs-Browser: https://gitlab.com/parrotsec/packages/parrot-updater
 
 Package: parrot-updater
 Architecture: any
