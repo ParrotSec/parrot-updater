@@ -1,2 +1,2 @@
-update-reminder usr/bin/
+target/release/parrot-updater usr/bin/
 parrot-updater.desktop etc/xdg/autostart
