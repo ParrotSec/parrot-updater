@@ -1,29 +1,32 @@
 Source: parrot-updater
 Section: parrot
 Priority: optional
-Maintainer: Parrot Team <parrot-devel@lists.parrotsec.org>
-Uploaders: Lorenzo "Palinuro" Faletra <palinuro@frozenbox.org>,
-Standards-Version: 3.9.8
-Build-Depends: debhelper (>= 9)
-Build-Depends-Indep: pkg-config
+Maintainer: Dario "danterolle" Camonita <danterolle@parrotsec.org>
+Uploaders: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>,
+Standards-Version: 4.7.0
+Build-Depends: debhelper-compat (= 13),
+               libgtk-4-dev,
+               libdbus-1-dev,
+               pkg-config,
+               rustc,
+               cargo
 Homepage: http://www.parrotsec.org/
 
 Package: parrot-updater
-Architecture: all
+Architecture: any
 Priority: optional
-Depends: bash, zenity, libnotify-bin, bc, parrot-core
-Description: Parrot Updater
- Parrot Updater is a set of graphical tools
- to handle system updates and to show
- periodical update reminders.
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         parrot-core,
+         pkexec
+Description: Parrot Updater - system update manager
+ Parrot Updater is a tool designed to handle system updates via a
+ graphical interface and provide periodical update reminders.
  .
- Its main goal is that Parrot Updater is designed
- to never ask an online server for updates, and
- it is designed to work entirely offline.
+ Its main goal is to manage updates while 
+ respecting privacy and network opsec. 
  .
- This behavior was implemented to avoid
- unwanted network traffic when the system is in use
- in critical monitored networks, during security tests
- or when we don't want other people on the network
- to understand what distribution is in use by avoiding
- automatic calls to the repositories of a specifig GNU/Linux distribution.
+ This behavior avoids unwanted network noise when the system is
+ used in critical monitored networks or during security audits, 
+ preventing third parties from identifying the OS through 
+ repository polling.
