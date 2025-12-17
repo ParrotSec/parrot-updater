@@ -139,8 +139,8 @@ fn build_ui(app: &Application) {
     let window = ApplicationWindow::builder()
         .application(app)
         .title("Parrot Updater")
-        .default_width(360)
-        .default_height(200)
+        .default_width(600)
+        .default_height(400)
         .build();
 
     window.connect_close_request(move |_| {
@@ -276,7 +276,14 @@ fn build_ui(app: &Application) {
                                 .buttons(gtk4::ButtonsType::Ok)
                                 .modal(true)
                                 .build();
-                            dlg.connect_response(|d, _| d.close());
+
+                            let main_window = window_clone2.clone();
+
+                            dlg.connect_response(move |d, _| {
+                                d.close();
+                                main_window.close();
+                            });
+
                             dlg.show();
 
                         } else {
