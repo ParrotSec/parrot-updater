@@ -77,6 +77,7 @@ fn build_ui(app: &Application) {
                 .comments("The official system updater for ParrotOS.")
                 .copyright("© Parrot Security")
                 .license_type(gtk4::License::Gpl30)
+                .logo_icon_name("parrot-logo")
                 .build();
 
             about.show();
