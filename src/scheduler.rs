@@ -1,5 +1,7 @@
 use chrono::{DateTime, Duration, Utc};
 use std::fs;
+#[cfg(target_os = "linux")]
+use std::process::{Command, Stdio};
 use notify_rust::{Notification, Timeout};
 use crate::utils::{get_timestamp_path, is_live_environment, ICON};
 
