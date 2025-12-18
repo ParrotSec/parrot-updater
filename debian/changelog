@@ -1,3 +1,9 @@
+parrot-updater (2.0.1) echo; urgency=medium
+
+  * Fix d/rules.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 18 Dec 2025 16:42:08 +0100
+
 parrot-updater (2.0) echo; urgency=medium
 
   [ Dario Camonita ]

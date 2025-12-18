@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+export HOME := $(shell pwd)
+
 %:
 	dh $@
 
