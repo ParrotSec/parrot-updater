@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::{Path, PathBuf};
 
 pub const LAST_UPDATE_FILE: &str = ".last-updated";
@@ -12,5 +13,10 @@ pub fn get_timestamp_path() -> PathBuf {
 }
 
 pub fn is_live_environment() -> bool {
-    Path::new("/lib/live/mount/rootfs/filesystem.squashfs").exists()
+    if let Ok(cmdline) = fs::read_to_string("/proc/cmdline") {
+        if cmdline.contains("boot=live") {
+            return true;
+        }
+    }
+    Path::new("/run/live/rootfs/filesystem.squashfs").exists()
 }
