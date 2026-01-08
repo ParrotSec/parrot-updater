@@ -25,8 +25,6 @@ pub fn run_scheduled() {
     };
 
     if should_run {
-        let _ = fs::write(&path, now.to_rfc3339());
-
         let notification_result = Notification::new()
             .summary("Parrot Updater")
             .body("A new update is available.")
