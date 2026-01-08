@@ -1,3 +1,10 @@
+parrot-updater (2.0.3) echo; urgency=medium
+
+  [ Dario Camonita ]
+  * fix: prevent premature timestamp update on notification
+
+ -- Dario "danterolle" Camonita <danterolle@parrotsec.org>  Thu, 08 Jan 2026 21:07:53 +0000
+
 parrot-updater (2.0.2) echo; urgency=medium
 
   [ Dario Camonita ]
