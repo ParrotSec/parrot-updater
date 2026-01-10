@@ -8,7 +8,7 @@ pub enum UpdateMsg {
 }
 
 pub fn run_upgrade_process(sender: Sender<UpdateMsg>) {
-    let cmd_str = "pkexec env DEBIAN_FRONTEND=noninteractive parrot-upgrade -y";
+    let cmd_str = "pkexec env DEBIAN_FRONTEND=noninteractive parrot-upgrade -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confnew'";
 
     let child = Command::new("sh")
         .arg("-c")
