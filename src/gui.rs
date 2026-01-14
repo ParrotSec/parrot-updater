@@ -1,13 +1,11 @@
 use gtk4::prelude::*;
-use gtk4::{Application, ApplicationWindow, Box, Button, Label, Orientation, ProgressBar, ScrolledWindow, TextView};
+use gtk4::{Application, ApplicationWindow, Box, Button, Label, Orientation, ScrolledWindow};
 use gtk4::glib;
+use vte4::prelude::*;
+use vte4::Terminal;
 use std::fs;
-use std::thread;
 use chrono::Utc;
-use crate::utils::{VERSION, AUTHOR, PROJECT_URL};
-
-use crate::updater::{UpdateMsg, run_upgrade_process};
-use crate::utils::get_timestamp_path;
+use crate::utils::{VERSION, AUTHOR, PROJECT_URL, get_timestamp_path};
 
 fn set_margin_all(widget: &impl WidgetExt, margin: i32) {
     widget.set_margin_top(margin);
@@ -29,8 +27,8 @@ fn build_ui(app: &Application) {
     let window = ApplicationWindow::builder()
         .application(app)
         .title("Parrot Updater")
-        .default_width(600)
-        .default_height(400)
+        .default_width(700)
+        .default_height(500)
         .build();
 
     if let Some(settings) = gtk4::Settings::default() {
@@ -42,9 +40,16 @@ fn build_ui(app: &Application) {
     set_margin_all(&vbox, 10);
 
     let lbl_status = Label::new(Some("Ready to update system"));
-    let progress = ProgressBar::builder().visible(false).build();
-    let text_view = TextView::builder().editable(false).monospace(true).build();
-    let scrolled = ScrolledWindow::builder().child(&text_view).vexpand(true).build();
+
+    let terminal = Terminal::new();
+    terminal.set_scroll_on_output(true);
+    terminal.set_scrollback_lines(10000);
+    terminal.set_cursor_blink_mode(vte4::CursorBlinkMode::Off);
+
+    let scrolled = ScrolledWindow::builder()
+        .child(&terminal)
+        .vexpand(true)
+        .build();
 
     let btn_start = Button::with_label("Start Update");
     let btn_about = Button::builder()
@@ -57,7 +62,6 @@ fn build_ui(app: &Application) {
     hbox_btns.append(&btn_about);
 
     vbox.append(&lbl_status);
-    vbox.append(&progress);
     vbox.append(&scrolled);
     vbox.append(&hbox_btns);
 
@@ -86,64 +90,58 @@ fn build_ui(app: &Application) {
 
     btn_start.connect_clicked({
         let lbl_status = lbl_status.clone();
-        let progress = progress.clone();
-        let text_view = text_view.clone();
+        let terminal = terminal.clone();
         let window = window.clone();
 
         move |btn| {
             btn.set_sensitive(false);
-            progress.set_visible(true);
             lbl_status.set_label("Updating...");
 
-            let buffer = text_view.buffer();
-            buffer.set_text("");
+            let cmd_str = "pkexec parrot-upgrade";
 
-            let (sender, receiver) = async_channel::unbounded::<UpdateMsg>();
+            let argv: &[&str] = &["/bin/sh", "-c", cmd_str];
 
-            thread::spawn(move || {
-                run_upgrade_process(sender);
-            });
-
-            glib::timeout_add_local(
-                std::time::Duration::from_millis(50),
+            // Since we are using vte4, we may remove updater.rs
+            terminal.spawn_async(
+                vte4::PtyFlags::DEFAULT,
+                None,
+                argv,
+                &[],
+                glib::SpawnFlags::DEFAULT,
+                || {},
+                -1,
+                None::<&gtk4::gio::Cancellable>,
                 {
                     let lbl_status = lbl_status.clone();
-                    let progress = progress.clone();
-                    let text_view = text_view.clone();
                     let btn = btn.clone();
-                    let window = window.clone();
 
-                    move || {
-                        while let Ok(msg) = receiver.try_recv() {
-                            match msg {
-                                UpdateMsg::Log(text) => {
-                                    let buf = text_view.buffer();
-                                    let mut iter = buf.end_iter();
-                                    buf.insert(&mut iter, &format!("{}\n", text.replace("\x1b", "")));
-                                    let mark = buf.create_mark(None, &buf.end_iter(), false);
-                                    text_view.scroll_to_mark(&mark, 0.0, true, 0.0, 1.0);
-                                    progress.pulse();
-                                }
-                                UpdateMsg::Finished(success) => {
-                                    progress.set_visible(false);
-                                    if success {
-                                        lbl_status.set_label("Update completed!");
-                                        btn.set_label("Done");
-                                        let _ = fs::write(get_timestamp_path(), Utc::now().to_rfc3339());
-                                        show_finished_dialog(&window);
-                                    } else {
-                                        lbl_status.set_label("Update failed");
-                                        btn.set_sensitive(true);
-                                        btn.set_label("Retry");
-                                    }
-                                    return glib::ControlFlow::Break;
-                                }
-                            }
+                    move |result| {
+                        if let Err(e) = result {
+                            lbl_status.set_label(&format!("Failed to start: {}", e));
+                            btn.set_sensitive(true);
                         }
-                        glib::ControlFlow::Continue
                     }
                 }
             );
+
+            terminal.connect_child_exited({
+                let lbl_status = lbl_status.clone();
+                let btn = btn.clone();
+                let window = window.clone();
+
+                move |_terminal, exit_status| {
+                    if exit_status == 0 {
+                        lbl_status.set_label("Update completed!");
+                        btn.set_label("Done");
+                        let _ = fs::write(get_timestamp_path(), Utc::now().to_rfc3339());
+                        show_finished_dialog(&window);
+                    } else {
+                        lbl_status.set_label(&format!("Update failed (exit code: {})", exit_status));
+                        btn.set_sensitive(true);
+                        btn.set_label("Retry");
+                    }
+                }
+            });
         }
     });
 
