@@ -1,3 +1,11 @@
+parrot-updater (2.0.5) echo; urgency=medium
+
+  [ Dario Camonita ]
+  * feat: use vte4-rs lib
+  * chore: add vte gtk4 dependency
+
+ -- Dario "danterolle" Camonita <danterolle@parrotsec.org>  Fri, 16 Jan 2026 09:48:17 +0000
+
 parrot-updater (2.0.4) echo; urgency=medium
 
   [ Dario Camonita ]
