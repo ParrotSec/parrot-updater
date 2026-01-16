@@ -5,7 +5,7 @@ Maintainer: Dario "danterolle" Camonita <danterolle@parrotsec.org>
 Uploaders: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>,
 Standards-Version: 4.7.0
 Build-Depends: debhelper-compat (= 13),
-               libgtk-4-dev, libvte-2.91-gtk4-dev
+               libgtk-4-dev, libvte-2.91-gtk4-dev,
                libdbus-1-dev,
                pkg-config,
                rustc,
