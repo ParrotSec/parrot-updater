@@ -1,3 +1,10 @@
+parrot-updater (2.0.6) echo; urgency=medium
+
+  [ Dario Camonita ]
+  * style: fix typo on d/control
+
+ -- Dario "danterolle" Camonita <danterolle@parrotsec.org>  Fri, 16 Jan 2026 10:01:12 +0000
+
 parrot-updater (2.0.5) echo; urgency=medium
 
   [ Dario Camonita ]
