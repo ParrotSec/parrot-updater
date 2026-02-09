@@ -16,7 +16,7 @@ pub fn run_scheduled() {
     let should_run = if let Ok(metadata) = fs::metadata(&path) {
         if let Ok(modified) = metadata.modified() {
             let modified_dt: DateTime<Utc> = modified.into();
-            (now - modified_dt) > Duration::weeks(1)
+            (now - modified_dt) > Duration::days(3)
         } else {
             true
         }
