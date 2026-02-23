@@ -1,13 +1,12 @@
 mod utils;
-mod updater;
 mod scheduler;
 mod gui;
 
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    let mode = args.get(1).map(|s| s.as_str()).unwrap_or("gui");
+    let mode = std::env::args().nth(1);
+    let mode_str = mode.as_deref().unwrap_or("gui");
 
-    match mode {
+    match mode_str {
         "scheduled" => scheduler::run_scheduled(),
         "gui" => gui::run_gui(),
         _ => {

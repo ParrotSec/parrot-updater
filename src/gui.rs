@@ -75,7 +75,7 @@ fn build_ui(app: &Application) {
                 .modal(true)
                 .program_name("Parrot Updater")
                 .version(VERSION)
-                .authors(vec![AUTHOR.to_string()])
+                .authors(AUTHOR.split(':').map(|s| s.to_string()).collect::<Vec<_>>())
                 .website(PROJECT_URL)
                 .website_label("Source Code")
                 .comments("The official system updater for ParrotOS.")
@@ -101,7 +101,6 @@ fn build_ui(app: &Application) {
 
             let argv: &[&str] = &["/bin/sh", "-c", cmd_str];
 
-            // Since we are using vte4, we may remove updater.rs
             terminal.spawn_async(
                 vte4::PtyFlags::DEFAULT,
                 None,
