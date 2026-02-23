@@ -1,3 +1,16 @@
+parrot-updater (2.0.7) echo; urgency=medium
+
+  [ Lorenzo Faletra ]
+  * check for updates every 3 days
+
+  [ Dario Camonita ]
+  * chore: add .gitignore
+  * refactor: remove unused updater module and streamline code
+  * fix: correct schedule timing in scheduler logs
+
+ -- Dario "danterolle" Camonita <danterolle@parrotsec.org>  Mon, 23 Feb 2026
+ 12:43:17 +0100
+
 parrot-updater (2.0.6) echo; urgency=medium
 
   [ Dario Camonita ]
