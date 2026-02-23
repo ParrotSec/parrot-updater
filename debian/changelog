@@ -1,8 +1,24 @@
+parrot-updater (2.0.6) echo; urgency=medium
+
+  [ Dario Camonita ]
+  * style: fix typo on d/control
+
+ -- Dario "danterolle" Camonita <danterolle@parrotsec.org>  Fri, 16 Jan 2026 10:01:12 +0000
+
+parrot-updater (2.0.5) echo; urgency=medium
+
+  [ Dario Camonita ]
+  * feat: use vte4-rs lib
+  * chore: add vte gtk4 dependency
+
+ -- Dario "danterolle" Camonita <danterolle@parrotsec.org>  Fri, 16 Jan 2026 09:48:17 +0000
+
 parrot-updater (2.0.4) echo; urgency=medium
 
-  * check for updates every 3 days
+  [ Dario Camonita ]
+  * fix: force non-interactive dpkg options to prevent hangs
 
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 09 Feb 2026 02:14:20 +0100
+ -- Dario "danterolle" Camonita <danterolle@parrotsec.org>  Sat, 10 Jan 2026 13:20:35 +0000
 
 parrot-updater (2.0.3) echo; urgency=medium
 
