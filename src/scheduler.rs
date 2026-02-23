@@ -57,7 +57,7 @@ pub fn run_scheduled() {
         if let Ok(metadata) = fs::metadata(&path) {
             if let Ok(modified) = metadata.modified() {
                 let last_run: DateTime<Utc> = modified.into();
-                let next_run = last_run + Duration::weeks(1);
+                let next_run = last_run + Duration::days(3);
                 let remaining = next_run - now;
 
                 if remaining.num_seconds() > 0 {
