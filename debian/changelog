@@ -1,3 +1,9 @@
+parrot-updater (2.0.5) echo; urgency=medium
+
+  * Upload new version.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 14 Apr 2026 11:22:59 +0200
+
 parrot-updater (2.0.4) echo; urgency=medium
 
   * check for updates every 3 days

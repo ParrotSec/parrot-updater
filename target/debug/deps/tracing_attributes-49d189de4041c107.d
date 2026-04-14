@@ -1,0 +1,7 @@
+/home/palinuro/Desktop/parrot/packages/parrot-updater/parrot-updater/target/debug/deps/tracing_attributes-49d189de4041c107.d: /home/palinuro/.var/app/com.jetbrains.RustRover/data/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-attributes-0.1.31/src/lib.rs /home/palinuro/.var/app/com.jetbrains.RustRover/data/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-attributes-0.1.31/src/attr.rs /home/palinuro/.var/app/com.jetbrains.RustRover/data/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-attributes-0.1.31/src/expand.rs
+
+/home/palinuro/Desktop/parrot/packages/parrot-updater/parrot-updater/target/debug/deps/libtracing_attributes-49d189de4041c107.so: /home/palinuro/.var/app/com.jetbrains.RustRover/data/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-attributes-0.1.31/src/lib.rs /home/palinuro/.var/app/com.jetbrains.RustRover/data/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-attributes-0.1.31/src/attr.rs /home/palinuro/.var/app/com.jetbrains.RustRover/data/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-attributes-0.1.31/src/expand.rs
+
+/home/palinuro/.var/app/com.jetbrains.RustRover/data/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-attributes-0.1.31/src/lib.rs:
+/home/palinuro/.var/app/com.jetbrains.RustRover/data/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-attributes-0.1.31/src/attr.rs:
+/home/palinuro/.var/app/com.jetbrains.RustRover/data/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-attributes-0.1.31/src/expand.rs:
